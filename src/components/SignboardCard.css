@@ -1,0 +1,219 @@
+.signboard-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+}
+
+.signboard-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+  border-color: var(--primary-color);
+}
+
+.card-image-link {
+  display: block;
+  text-decoration: none;
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background-color: var(--bg-secondary);
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.signboard-card:hover .card-image img {
+  transform: scale(1.05);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.card-era {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.card-condition {
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.condition-good {
+  background-color: #2E7D32;
+  color: white;
+}
+
+.condition-weathered {
+  background-color: #F57C00;
+  color: white;
+}
+
+.condition-damaged {
+  background-color: #C62828;
+  color: white;
+}
+
+.condition-restored {
+  background-color: #1565C0;
+  color: white;
+}
+
+.card-content {
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.card-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.1em;
+}
+
+.card-shop {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.85rem;
+}
+
+.card-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.meta-icon {
+  font-size: 0.9rem;
+}
+
+.card-colors {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.tag {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.card-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.location-text {
+  line-height: 1.4;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  background-color: var(--bg-primary);
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.action-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.favorite-btn.active {
+  background-color: #C62828;
+  border-color: #C62828;
+}
+
+.compare-btn.active {
+  background-color: #1565C0;
+  border-color: #1565C0;
+}
+
+.action-icon {
+  font-size: 1rem;
+}

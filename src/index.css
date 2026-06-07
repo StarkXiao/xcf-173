@@ -1,0 +1,102 @@
+:root {
+  --primary-color: #8B4513;
+  --secondary-color: #DAA520;
+  --accent-color: #CD853F;
+  --text-primary: #2C2416;
+  --text-secondary: #5C4A3A;
+  --text-muted: #8B7355;
+  --bg-primary: #FDF8F0;
+  --bg-secondary: #F5EDE0;
+  --bg-card: #FFFFFF;
+  --border-color: #D4C4B0;
+  --shadow: 0 2px 8px rgba(139, 69, 19, 0.1);
+  --shadow-hover: 0 4px 16px rgba(139, 69, 19, 0.2);
+}
+
+[data-theme="dark"] {
+  --primary-color: #DAA520;
+  --secondary-color: #CD853F;
+  --accent-color: #D2691E;
+  --text-primary: #F5EDE0;
+  --text-secondary: #D4C4B0;
+  --text-muted: #8B7355;
+  --bg-primary: #1A1410;
+  --bg-secondary: #2C2416;
+  --bg-card: #3A2E22;
+  --border-color: #5C4A3A;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="sepia"] {
+  --primary-color: #704214;
+  --secondary-color: #B8860B;
+  --accent-color: #A0522D;
+  --text-primary: #3E2723;
+  --text-secondary: #5D4037;
+  --text-muted: #8D6E63;
+  --bg-primary: #F5E6C8;
+  --bg-secondary: #E8D5B7;
+  --bg-card: #FBF2DF;
+  --border-color: #C9B896;
+  --shadow: 0 2px 8px rgba(112, 66, 20, 0.12);
+  --shadow-hover: 0 4px 16px rgba(112, 66, 20, 0.22);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}

@@ -1,0 +1,122 @@
+.favorites-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 2rem 3rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 0 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-title-wrap h1 {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 0.3rem;
+}
+
+.page-title-wrap p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.page-title-wrap strong {
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.browse-btn {
+  padding: 0.7rem 1.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.browse-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.empty-favorites {
+  text-align: center;
+  padding: 6rem 2rem;
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  border: 1px dashed var(--border-color);
+}
+
+.empty-icon {
+  font-size: 4.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-favorites h2 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.empty-favorites p {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.go-btn {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.go-btn:hover {
+  background-color: var(--accent-color);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.masonry-grid {
+  column-count: 4;
+  column-gap: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+
+  .favorites-page {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .masonry-grid {
+    column-count: 1;
+  }
+}
