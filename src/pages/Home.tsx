@@ -5,6 +5,7 @@ import type { Filters } from '../types';
 import { hasEventInEraStage } from '../types';
 import { useCollections } from '../context/CollectionsContext';
 import Filter from '../components/Filter';
+import SearchBar, { type SearchQuery } from '../components/SearchBar';
 import SignboardCard from '../components/SignboardCard';
 import CollectionCard from '../components/CollectionCard';
 import RestorationTimeline from '../components/RestorationTimeline';
@@ -20,11 +21,39 @@ const Home: React.FC = () => {
     eraStage: '全部',
     hasRestoration: '全部'
   });
+  const [searchQuery, setSearchQuery] = useState<SearchQuery>({
+    shopName: '',
+    location: '',
+    fontStyle: '',
+    tags: ''
+  });
 
   const hasNonEmptyCollections = collections.some(c => c.items.length > 0);
 
   const filteredSignboards = useMemo(() => {
     return signboards.filter(s => {
+      if (searchQuery.shopName.trim()) {
+        const keyword = searchQuery.shopName.trim().toLowerCase();
+        if (!s.name.toLowerCase().includes(keyword) && !s.shopName.toLowerCase().includes(keyword)) {
+          return false;
+        }
+      }
+      if (searchQuery.location.trim()) {
+        const keyword = searchQuery.location.trim().toLowerCase();
+        if (!s.location.toLowerCase().includes(keyword)) return false;
+      }
+      if (searchQuery.fontStyle.trim()) {
+        const keyword = searchQuery.fontStyle.trim().toLowerCase();
+        if (!s.fontStyle.toLowerCase().includes(keyword) && !s.fontFamily.toLowerCase().includes(keyword)) {
+          return false;
+        }
+      }
+      if (searchQuery.tags.trim()) {
+        const keyword = searchQuery.tags.trim().toLowerCase();
+        const hasMatch = s.tags.some(tag => tag.toLowerCase().includes(keyword));
+        if (!hasMatch) return false;
+      }
+
       if (filters.era !== '全部' && s.era !== filters.era) return false;
       if (filters.fontStyle !== '全部' && s.fontStyle !== filters.fontStyle) return false;
       if (filters.condition !== '全部' && s.condition !== filters.condition) return false;
@@ -44,7 +73,7 @@ const Home: React.FC = () => {
 
       return true;
     });
-  }, [filters]);
+  }, [filters, searchQuery]);
 
   const handleReset = () => {
     setFilters({
@@ -54,6 +83,21 @@ const Home: React.FC = () => {
       condition: '全部',
       eraStage: '全部',
       hasRestoration: '全部'
+    });
+    setSearchQuery({
+      shopName: '',
+      location: '',
+      fontStyle: '',
+      tags: ''
+    });
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery({
+      shopName: '',
+      location: '',
+      fontStyle: '',
+      tags: ''
     });
   };
 
@@ -121,6 +165,13 @@ const Home: React.FC = () => {
       </div>
 
       <div className="main-content">
+        <SearchBar
+          searchQuery={searchQuery}
+          onChange={setSearchQuery}
+          onClear={handleClearSearch}
+          resultCount={filteredSignboards.length}
+        />
+
         <Filter
           filters={filters}
           onChange={setFilters}
