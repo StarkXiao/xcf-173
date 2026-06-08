@@ -2,12 +2,15 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useCollections } from '../context/CollectionsContext';
 import type { ThemeMode } from '../types';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { favorites, compareList } = useFavorites();
+  const { compareList } = useFavorites();
+  const { collections } = useCollections();
+  const totalInCollections = collections.reduce((sum, c) => sum + c.items.length, 0);
 
   const themeOptions: { value: ThemeMode; label: string; icon: string }[] = [
     { value: 'sepia', label: '怀旧棕', icon: '📜' },
@@ -32,9 +35,9 @@ const Navbar: React.FC = () => {
             <span>全部招牌</span>
           </NavLink>
           <NavLink to="/favorites" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <span className="nav-icon">❤️</span>
-            <span>我的收藏</span>
-            {favorites.length > 0 && <span className="nav-badge">{favorites.length}</span>}
+            <span className="nav-icon">📚</span>
+            <span>我的藏册</span>
+            {totalInCollections > 0 && <span className="nav-badge">{totalInCollections}</span>}
           </NavLink>
           <NavLink to="/compare" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">⚖️</span>

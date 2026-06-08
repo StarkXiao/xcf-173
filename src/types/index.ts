@@ -145,3 +145,33 @@ export const getEventsInEraStage = (signboard: Signboard, stageId: string): Rest
     event => event.year >= stage.startYear && event.year <= stage.endYear
   );
 };
+
+export interface CollectionItem {
+  signboardId: string;
+  note?: string;
+  addedAt: number;
+}
+
+export interface Collection {
+  id: string;
+  name: string;
+  description: string;
+  coverSignboardId?: string;
+  items: CollectionItem[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface CollectionsContextType {
+  collections: Collection[];
+  createCollection: (name: string, description?: string) => Collection;
+  updateCollection: (id: string, updates: Partial<Omit<Collection, 'id' | 'createdAt'>>) => void;
+  deleteCollection: (id: string) => void;
+  addToCollection: (collectionId: string, signboardId: string, note?: string) => void;
+  removeFromCollection: (collectionId: string, signboardId: string) => void;
+  updateItemNote: (collectionId: string, signboardId: string, note: string) => void;
+  reorderItems: (collectionId: string, signboardIds: string[]) => void;
+  setCollectionCover: (collectionId: string, signboardId: string | undefined) => void;
+  getCollectionsContainingSignboard: (signboardId: string) => Collection[];
+  isSignboardInCollection: (collectionId: string, signboardId: string) => boolean;
+}

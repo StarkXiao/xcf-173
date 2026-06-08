@@ -217,3 +217,51 @@
 .action-icon {
   font-size: 1rem;
 }
+
+.card-collections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.collection-tag {
+  background-color: var(--bg-secondary);
+  color: var(--primary-color);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-tag.more {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.collection-btn {
+  position: relative;
+}
+
+.collection-btn::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent-color);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.in-collections .collection-btn::after {
+  opacity: 1;
+}

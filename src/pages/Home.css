@@ -89,6 +89,39 @@
   font-size: 1.5rem;
 }
 
+.collections-section {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+}
+
+.collections-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.collections-section-title {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.collections-more-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  transition: all 0.2s;
+}
+
+.collections-more-link:hover {
+  color: var(--accent-color);
+}
+
 .era-stage-section {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);

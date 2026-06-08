@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
 import { hasEventInEraStage } from '../types';
+import { useCollections } from '../context/CollectionsContext';
 import Filter from '../components/Filter';
 import SignboardCard from '../components/SignboardCard';
+import CollectionCard from '../components/CollectionCard';
 import RestorationTimeline from '../components/RestorationTimeline';
 import './Home.css';
 
 const Home: React.FC = () => {
+  const { collections } = useCollections();
   const [filters, setFilters] = useState<Filters>({
     era: '全部',
     fontStyle: '全部',
@@ -16,6 +20,8 @@ const Home: React.FC = () => {
     eraStage: '全部',
     hasRestoration: '全部'
   });
+
+  const hasNonEmptyCollections = collections.some(c => c.items.length > 0);
 
   const filteredSignboards = useMemo(() => {
     return signboards.filter(s => {
@@ -83,6 +89,25 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {hasNonEmptyCollections && (
+        <div className="collections-section">
+          <div className="collections-section-header">
+            <h3 className="collections-section-title">📚 我的藏册</h3>
+            <Link to="/favorites" className="collections-more-link">
+              管理藏册 →
+            </Link>
+          </div>
+          <div className="masonry-grid">
+            {collections
+              .filter(c => c.items.length > 0)
+              .slice(0, 4)
+              .map(collection => (
+                <CollectionCard key={collection.id} collection={collection} />
+              ))}
+          </div>
+        </div>
+      )}
 
       <div className="era-stage-section">
         <h3 className="era-stage-title">🕰️ 按年代阶段回看</h3>
