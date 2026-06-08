@@ -131,6 +131,12 @@ const SignboardDetail: React.FC = () => {
               <span>⚖️</span>
               <span>{isInCompare(signboard.id) ? '移出对比' : '加入对比'}</span>
             </button>
+            {isInCompare(signboard.id) && (
+              <Link to="/compare" className="detail-action-btn goto-compare-btn">
+                <span>📊</span>
+                <span>前往对比</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -146,7 +152,25 @@ const SignboardDetail: React.FC = () => {
 
       {relatedSignboards.length > 0 && (
         <div className="related-section">
-          <h3 className="section-title">🔗 相关招牌</h3>
+          <div className="related-section-header">
+            <h3 className="section-title">🔗 相关招牌</h3>
+            <div className="related-actions">
+              <button
+                className="batch-compare-btn"
+                onClick={() => {
+                  relatedSignboards.forEach(s => {
+                    if (!isInCompare(s.id)) toggleCompare(s.id);
+                  });
+                }}
+                title="将所有相关招牌加入对比"
+              >
+                ⚖️ 全部加入对比
+              </button>
+              <Link to="/compare" className="goto-compare-link">
+                📊 前往对比页 →
+              </Link>
+            </div>
+          </div>
           <div className="related-grid">
             {relatedSignboards.map(s => (
               <SignboardCard key={s.id} signboard={s} />
