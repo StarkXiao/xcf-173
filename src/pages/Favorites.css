@@ -220,7 +220,9 @@
     #8B4513,
     #CD853F,
     #DAA520,
-    #B8860B
+    #B8860B,
+    #6B8E23,
+    #4682B4
   );
   border-radius: 2px;
 }
@@ -250,6 +252,37 @@
 .timeline-card-content {
   flex: 1;
   max-width: calc(100% - 110px);
+}
+
+.grouped-card-wrapper {
+  break-inside: avoid;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stage-events-panel {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+}
+
+.stage-events-title {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
+.year-stage-tag {
+  font-size: 0.68rem;
+  margin-top: 0.15rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
 }
 
 @media (max-width: 1200px) {

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
-import { eraStages } from '../types';
+import { hasEventInEraStage } from '../types';
 import Filter from '../components/Filter';
 import SignboardCard from '../components/SignboardCard';
 import RestorationTimeline from '../components/RestorationTimeline';
@@ -25,11 +25,7 @@ const Home: React.FC = () => {
       if (filters.tag !== '全部' && !s.tags.includes(filters.tag)) return false;
 
       if (filters.eraStage !== '全部') {
-        const stage = eraStages.find(es => es.id === filters.eraStage);
-        if (stage) {
-          const firstYear = s.restorationHistory[0]?.year ?? s.year;
-          if (firstYear < stage.startYear || firstYear > stage.endYear) return false;
-        }
+        if (!hasEventInEraStage(s, filters.eraStage)) return false;
       }
 
       if (filters.hasRestoration !== '全部') {

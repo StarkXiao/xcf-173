@@ -98,5 +98,50 @@ export const eraStages: EraStage[] = [
     endYear: 1978,
     description: '新中国成立，规范化设计',
     color: '#8B7355'
+  },
+  {
+    id: 'reform-era',
+    label: '改革开放',
+    startYear: 1979,
+    endYear: 1999,
+    description: '老字号复兴，传统与现代交融',
+    color: '#6B8E23'
+  },
+  {
+    id: 'modern-era',
+    label: '现代时期',
+    startYear: 2000,
+    endYear: 2030,
+    description: '数字化时代，非遗保护与焕新',
+    color: '#4682B4'
   }
 ];
+
+export const getEraStageByYear = (year: number): EraStage | undefined => {
+  return eraStages.find(stage => year >= stage.startYear && year <= stage.endYear);
+};
+
+export const getSignboardEraStages = (signboard: Signboard): EraStage[] => {
+  const stages = new Map<string, EraStage>();
+  signboard.restorationHistory.forEach(event => {
+    const stage = getEraStageByYear(event.year);
+    if (stage) stages.set(stage.id, stage);
+  });
+  return Array.from(stages.values());
+};
+
+export const hasEventInEraStage = (signboard: Signboard, stageId: string): boolean => {
+  const stage = eraStages.find(s => s.id === stageId);
+  if (!stage) return false;
+  return signboard.restorationHistory.some(
+    event => event.year >= stage.startYear && event.year <= stage.endYear
+  );
+};
+
+export const getEventsInEraStage = (signboard: Signboard, stageId: string): RestorationEvent[] => {
+  const stage = eraStages.find(s => s.id === stageId);
+  if (!stage) return [];
+  return signboard.restorationHistory.filter(
+    event => event.year >= stage.startYear && event.year <= stage.endYear
+  );
+};

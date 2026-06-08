@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { RestorationEvent, EraStage, Signboard } from '../types';
-import { eraStages } from '../types';
+import type { RestorationEvent, Signboard } from '../types';
+import { eraStages, hasEventInEraStage, getEraStageByYear } from '../types';
 import './RestorationTimeline.css';
 
 interface RestorationTimelineProps {
@@ -29,10 +29,6 @@ const conditionLabels: Record<string, { text: string; className: string }> = {
   'restored': { text: '经过修复', className: 'cond-restored' }
 };
 
-const getEraStageForYear = (year: number): EraStage | undefined => {
-  return eraStages.find(stage => year >= stage.startYear && year <= stage.endYear);
-};
-
 const RestorationTimeline: React.FC<RestorationTimelineProps> = ({
   history,
   compact = false,
@@ -50,10 +46,7 @@ const RestorationTimeline: React.FC<RestorationTimelineProps> = ({
       <div className="era-stage-timeline">
         <div className="era-stage-track">
           {eraStages.map(stage => {
-            const stageSignboards = signboards.filter(s => {
-              const firstEvent = s.restorationHistory[0];
-              return firstEvent && firstEvent.year >= stage.startYear && firstEvent.year <= stage.endYear;
-            });
+            const stageSignboards = signboards.filter(s => hasEventInEraStage(s, stage.id));
             const isSelected = selectedEraStage === stage.id;
 
             return (
@@ -124,7 +117,7 @@ const RestorationTimeline: React.FC<RestorationTimelineProps> = ({
       <div className="timeline-track">
         {sortedHistory.map((event, idx) => {
           const typeInfo = eventTypeLabels[event.type];
-          const eraStage = getEraStageForYear(event.year);
+          const eraStage = getEraStageByYear(event.year);
           const isLast = idx === sortedHistory.length - 1;
 
           return (
