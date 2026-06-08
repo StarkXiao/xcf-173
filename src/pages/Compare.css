@@ -380,6 +380,64 @@
   font-weight: 600;
 }
 
+.restoration-compact {
+  display: flex;
+  justify-content: center;
+}
+
+.restoration-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  min-width: 90px;
+  justify-content: center;
+}
+
+.stat-pill .pill-icon {
+  font-size: 0.9rem;
+}
+
+.stat-pill .pill-label {
+  color: var(--text-muted);
+}
+
+.stat-pill .pill-value {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.stat-pill.stat-good {
+  background-color: #E3F2FD;
+}
+.stat-pill.stat-good .pill-value {
+  color: #1565C0;
+}
+
+.stat-pill.stat-warning {
+  background-color: #FFEBEE;
+}
+.stat-pill.stat-warning .pill-value {
+  color: #C62828;
+}
+
+.stat-pill.stat-paint {
+  background-color: #F3E5F5;
+}
+.stat-pill.stat-paint .pill-value {
+  color: #6A1B9A;
+}
+
 @media (max-width: 900px) {
   .compare-page {
     padding: 1rem 1rem 2rem;

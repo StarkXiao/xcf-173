@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import SignboardCard from '../components/SignboardCard';
+import RestorationTimeline from '../components/RestorationTimeline';
 import './SignboardDetail.css';
 
 const conditionLabels: Record<string, { text: string; className: string }> = {
@@ -140,6 +141,8 @@ const SignboardDetail: React.FC = () => {
           <p>{signboard.description}</p>
         </div>
       </div>
+
+      <RestorationTimeline history={signboard.restorationHistory} />
 
       {relatedSignboards.length > 0 && (
         <div className="related-section">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import type { Signboard } from '../types';
+import RestorationTimeline from '../components/RestorationTimeline';
 import './Compare.css';
 
 const conditionLabels: Record<string, string> = {
@@ -11,6 +12,9 @@ const conditionLabels: Record<string, string> = {
   'damaged': '有所损坏',
   'restored': '经过修复'
 };
+
+const eventTypeCount = (s: Signboard, type: string) =>
+  s.restorationHistory.filter(h => h.type === type).length;
 
 const Compare: React.FC = () => {
   const { getCompareSignboards, toggleCompare, clearCompare, compareList } = useFavorites();
@@ -126,6 +130,45 @@ const Compare: React.FC = () => {
                     ))}
                   </div>
                 ))}
+                {renderRow('修缮大事记', (s) => (
+                  <div className="restoration-compact">
+                    <RestorationTimeline history={s.restorationHistory} compact />
+                  </div>
+                ))}
+                {renderRow('修缮统计', (s) => (
+                  <div className="restoration-stats">
+                    <div className="stat-pill">
+                      <span className="pill-icon">📜</span>
+                      <span className="pill-label">总计</span>
+                      <span className="pill-value">{s.restorationHistory.length}</span>
+                    </div>
+                    <div className="stat-pill stat-good">
+                      <span className="pill-icon">🏛️</span>
+                      <span className="pill-label">修缮</span>
+                      <span className="pill-value">{eventTypeCount(s, 'restoration')}</span>
+                    </div>
+                    <div className="stat-pill stat-warning">
+                      <span className="pill-icon">⚠️</span>
+                      <span className="pill-label">受损</span>
+                      <span className="pill-value">{eventTypeCount(s, 'damaged')}</span>
+                    </div>
+                    <div className="stat-pill stat-paint">
+                      <span className="pill-icon">🎨</span>
+                      <span className="pill-label">重漆</span>
+                      <span className="pill-value">{eventTypeCount(s, 'repaint')}</span>
+                    </div>
+                  </div>
+                ))}
+                {renderRow('历史跨度', (s) => {
+                  const years = s.restorationHistory.map(h => h.year);
+                  const min = Math.min(...years);
+                  const max = Math.max(...years);
+                  return (
+                    <span className="value-highlight">
+                      {min}-{max}（{max - min}年）
+                    </span>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -151,6 +194,24 @@ const Compare: React.FC = () => {
                 <span className="analysis-label">使用颜色</span>
                 <span className="analysis-value">
                   {new Set(compareSignboards.flatMap(s => s.colors)).size} 种
+                </span>
+              </div>
+              <div className="analysis-item">
+                <span className="analysis-label">修缮事件总数</span>
+                <span className="analysis-value">
+                  {compareSignboards.reduce((sum, s) => sum + s.restorationHistory.length, 0)} 次
+                </span>
+              </div>
+              <div className="analysis-item">
+                <span className="analysis-label">历经磨难</span>
+                <span className="analysis-value">
+                  {compareSignboards.reduce((sum, s) => sum + eventTypeCount(s, 'damaged'), 0)} 次受损记录
+                </span>
+              </div>
+              <div className="analysis-item">
+                <span className="analysis-label">老字号代表</span>
+                <span className="analysis-value">
+                  {compareSignboards.find(s => s.restorationHistory.length >= 5)?.name ?? '暂无'}
                 </span>
               </div>
             </div>

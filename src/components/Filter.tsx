@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Filters } from '../types';
+import { eraStages } from '../types';
 import { eras, fontStyles, conditions, allTags } from '../data/signboards';
 import './Filter.css';
 
@@ -25,6 +26,22 @@ const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount
       </div>
 
       <div className="filter-grid">
+        <div className="filter-group">
+          <label className="filter-label">年代阶段</label>
+          <select
+            className="filter-select"
+            value={filters.eraStage}
+            onChange={(e) => handleChange('eraStage', e.target.value)}
+          >
+            <option value="全部">全部阶段</option>
+            {eraStages.map(stage => (
+              <option key={stage.id} value={stage.id}>
+                {stage.label}（{stage.startYear}-{stage.endYear}）
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="filter-group">
           <label className="filter-label">年代</label>
           <select
@@ -61,6 +78,21 @@ const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount
             {conditions.map(c => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label className="filter-label">修缮情况</label>
+          <select
+            className="filter-select"
+            value={filters.hasRestoration}
+            onChange={(e) => handleChange('hasRestoration', e.target.value)}
+          >
+            <option value="全部">全部</option>
+            <option value="has-restored">有修缮记录</option>
+            <option value="has-damaged">曾受损</option>
+            <option value="has-repainted">经重漆</option>
+            <option value="multi-restoration">多次修缮</option>
           </select>
         </div>
 

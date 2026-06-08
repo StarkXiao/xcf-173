@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
+import { eraStages } from '../types';
 import Filter from '../components/Filter';
 import SignboardCard from '../components/SignboardCard';
+import RestorationTimeline from '../components/RestorationTimeline';
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -10,7 +12,9 @@ const Home: React.FC = () => {
     era: '全部',
     fontStyle: '全部',
     tag: '全部',
-    condition: '全部'
+    condition: '全部',
+    eraStage: '全部',
+    hasRestoration: '全部'
   });
 
   const filteredSignboards = useMemo(() => {
@@ -19,6 +23,23 @@ const Home: React.FC = () => {
       if (filters.fontStyle !== '全部' && s.fontStyle !== filters.fontStyle) return false;
       if (filters.condition !== '全部' && s.condition !== filters.condition) return false;
       if (filters.tag !== '全部' && !s.tags.includes(filters.tag)) return false;
+
+      if (filters.eraStage !== '全部') {
+        const stage = eraStages.find(es => es.id === filters.eraStage);
+        if (stage) {
+          const firstYear = s.restorationHistory[0]?.year ?? s.year;
+          if (firstYear < stage.startYear || firstYear > stage.endYear) return false;
+        }
+      }
+
+      if (filters.hasRestoration !== '全部') {
+        const history = s.restorationHistory;
+        if (filters.hasRestoration === 'has-restored' && !history.some(h => h.type === 'restoration')) return false;
+        if (filters.hasRestoration === 'has-damaged' && !history.some(h => h.type === 'damaged')) return false;
+        if (filters.hasRestoration === 'has-repainted' && !history.some(h => h.type === 'repaint')) return false;
+        if (filters.hasRestoration === 'multi-restoration' && history.filter(h => h.type === 'restoration').length < 2) return false;
+      }
+
       return true;
     });
   }, [filters]);
@@ -28,8 +49,14 @@ const Home: React.FC = () => {
       era: '全部',
       fontStyle: '全部',
       tag: '全部',
-      condition: '全部'
+      condition: '全部',
+      eraStage: '全部',
+      hasRestoration: '全部'
     });
+  };
+
+  const handleSelectEraStage = (stageId: string) => {
+    setFilters(prev => ({ ...prev, eraStage: stageId || '全部' }));
   };
 
   return (
@@ -59,6 +86,17 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="era-stage-section">
+        <h3 className="era-stage-title">🕰️ 按年代阶段回看</h3>
+        <RestorationTimeline
+          history={[]}
+          showEraStages
+          signboards={signboards}
+          onSelectEraStage={handleSelectEraStage}
+          selectedEraStage={filters.eraStage === '全部' ? '' : filters.eraStage}
+        />
       </div>
 
       <div className="main-content">

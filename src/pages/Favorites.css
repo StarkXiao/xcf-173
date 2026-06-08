@@ -11,6 +11,43 @@
   padding: 1.5rem 0 2rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.view-switcher {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.view-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.view-btn:hover {
+  background-color: var(--bg-secondary);
+  color: var(--primary-color);
+}
+
+.view-btn.active {
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .page-title-wrap h1 {
@@ -91,6 +128,128 @@
 .masonry-grid {
   column-count: 4;
   column-gap: 1.5rem;
+}
+
+.grouped-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.era-group {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.era-group-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 3px solid var(--primary-color);
+  flex-wrap: wrap;
+}
+
+.era-group-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 0.05em;
+}
+
+.era-group-years {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+  padding: 0.2rem 0.6rem;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.era-group-count {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: 20px;
+}
+
+.timeline-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.timeline-view .era-stage-section {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow: var(--shadow);
+}
+
+.timeline-view .era-stage-title {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.timeline-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+.timeline-cards-list::before {
+  content: '';
+  position: absolute;
+  left: 55px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    #8B4513,
+    #CD853F,
+    #DAA520,
+    #B8860B
+  );
+  border-radius: 2px;
+}
+
+.timeline-card-item {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  position: relative;
+}
+
+.timeline-card-year {
+  width: 80px;
+  flex-shrink: 0;
+  background-color: var(--bg-card);
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.5rem;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: var(--shadow);
+  z-index: 2;
+}
+
+.timeline-card-content {
+  flex: 1;
+  max-width: calc(100% - 110px);
 }
 
 @media (max-width: 1200px) {
