@@ -73,6 +73,30 @@ const getEraDiff = (year1: number, year2: number): string => {
   return '跨越百年';
 };
 
+const getColorRatios = (colors: string[]): number[] => {
+  const n = colors.length;
+  if (n === 0) return [];
+  if (n === 1) return [100];
+  if (n === 2) return [60, 40];
+  if (n === 3) return [55, 30, 15];
+  const ratios: number[] = [50, 28];
+  const remaining = 100 - 50 - 28;
+  const accentEach = Math.round(remaining / (n - 2));
+  for (let i = 2; i < n - 1; i++) {
+    ratios.push(accentEach);
+  }
+  const last = 100 - ratios.reduce((a, b) => a + b, 0);
+  ratios.push(last);
+  return ratios;
+};
+
+const getColorRole = (index: number, total: number): string => {
+  if (total === 1) return '主色';
+  if (index === 0) return '主色（底色）';
+  if (index === 1) return '辅色（字色）';
+  return '点缀色';
+};
+
 const Compare: React.FC = () => {
   const { getCompareSignboards, toggleCompare, clearCompare, compareList } = useFavorites();
   const compareSignboards = getCompareSignboards(signboards);
@@ -181,22 +205,19 @@ const Compare: React.FC = () => {
                   </div>
                 ))}
                 {renderRow('颜色占比', (s) => {
-                  const total = s.colors.length;
+                  const ratios = getColorRatios(s.colors);
                   return (
                     <div className="color-ratio-bar">
-                      {s.colors.map((color, idx) => {
-                        const percentage = Math.round((1 / total) * 100);
-                        return (
-                          <div
-                            key={idx}
-                            className="color-ratio-segment"
-                            style={{ backgroundColor: color, width: `${percentage}%` }}
-                            title={`${color} ${percentage}%`}
-                          >
-                            <span className="ratio-label">{percentage}%</span>
-                          </div>
-                        );
-                      })}
+                      {s.colors.map((color, idx) => (
+                        <div
+                          key={idx}
+                          className="color-ratio-segment"
+                          style={{ backgroundColor: color, width: `${ratios[idx]}%` }}
+                          title={`${getColorRole(idx, s.colors.length)} ${color} ${ratios[idx]}%`}
+                        >
+                          {ratios[idx] >= 10 && <span className="ratio-label">{ratios[idx]}%</span>}
+                        </div>
+                      ))}
                     </div>
                   );
                 })}
@@ -258,29 +279,29 @@ const Compare: React.FC = () => {
                 const coolColors = s.colors.filter(c => getColorWarmth(c) === 'cool').length;
                 const neutralColors = s.colors.filter(c => getColorWarmth(c) === 'neutral').length;
                 const categories = [...new Set(s.colors.map(c => getColorCategory(c)))];
+                const ratios = getColorRatios(s.colors);
                 return (
                   <div key={s.id} className="color-analysis-card">
                     <h4 className="color-analysis-name">{s.name}</h4>
                     <div className="color-ratio-bar large">
-                      {s.colors.map((color, idx) => {
-                        const percentage = Math.round((1 / s.colors.length) * 100);
-                        return (
-                          <div
-                            key={idx}
-                            className="color-ratio-segment"
-                            style={{ backgroundColor: color, width: `${percentage}%` }}
-                            title={`${color} ${percentage}%`}
-                          >
-                            <span className="ratio-label">{percentage}%</span>
-                          </div>
-                        );
-                      })}
+                      {s.colors.map((color, idx) => (
+                        <div
+                          key={idx}
+                          className="color-ratio-segment"
+                          style={{ backgroundColor: color, width: `${ratios[idx]}%` }}
+                          title={`${getColorRole(idx, s.colors.length)} ${color} ${ratios[idx]}%`}
+                        >
+                          {ratios[idx] >= 15 && <span className="ratio-label">{ratios[idx]}%</span>}
+                        </div>
+                      ))}
                     </div>
                     <div className="color-legend-row">
                       {s.colors.map((color, idx) => (
                         <div key={idx} className="color-legend-item">
                           <div className="legend-swatch" style={{ backgroundColor: color }} />
-                          <span className="legend-label">{getColorCategory(color)}</span>
+                          <span className="legend-label">
+                            {getColorRole(idx, s.colors.length)} {ratios[idx]}%
+                          </span>
                         </div>
                       ))}
                     </div>

@@ -5,8 +5,10 @@ import type { Signboard } from '../types';
 interface FavoritesContextType {
   favorites: string[];
   compareList: string[];
+  maxCompare: number;
   toggleFavorite: (id: string) => void;
   toggleCompare: (id: string) => void;
+  addToCompare: (id: string) => { success: boolean; reason?: string; alreadyIn: boolean };
   clearCompare: () => void;
   isFavorite: (id: string) => boolean;
   isInCompare: (id: string) => boolean;
@@ -17,6 +19,8 @@ interface FavoritesContextType {
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const MAX_COMPARE = 4;
+
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('signboard-favorites');
     return saved ? JSON.parse(saved) : [];
@@ -46,11 +50,22 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
       if (prev.includes(id)) {
         return prev.filter(c => c !== id);
       }
-      if (prev.length >= 4) {
+      if (prev.length >= MAX_COMPARE) {
         return prev;
       }
       return [...prev, id];
     });
+  };
+
+  const addToCompare = (id: string): { success: boolean; reason?: string; alreadyIn: boolean } => {
+    if (compareList.includes(id)) {
+      return { success: false, alreadyIn: true, reason: '已在对比列表中' };
+    }
+    if (compareList.length >= MAX_COMPARE) {
+      return { success: false, alreadyIn: false, reason: `对比列表已满（最多 ${MAX_COMPARE} 块）` };
+    }
+    setCompareList(prev => [...prev, id]);
+    return { success: true, alreadyIn: false };
   };
 
   const clearCompare = () => setCompareList([]);
@@ -69,8 +84,10 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
       value={{
         favorites,
         compareList,
+        maxCompare: MAX_COMPARE,
         toggleFavorite,
         toggleCompare,
+        addToCompare,
         clearCompare,
         isFavorite,
         isInCompare,

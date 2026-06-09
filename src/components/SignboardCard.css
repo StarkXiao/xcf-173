@@ -1,4 +1,5 @@
 .signboard-card {
+  position: relative;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -264,4 +265,60 @@
 
 .in-collections .collection-btn::after {
   opacity: 1;
+}
+
+.card-toast {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: card-toast-in 0.25s ease-out;
+  white-space: nowrap;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+}
+
+@keyframes card-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.card-toast-success {
+  background-color: rgba(46, 125, 50, 0.95);
+  color: white;
+}
+
+.card-toast-warning {
+  background-color: rgba(245, 124, 0, 0.95);
+  color: white;
+}
+
+.card-toast-error {
+  background-color: rgba(198, 40, 40, 0.95);
+  color: white;
+}
+
+.card-toast-icon {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.card-toast-msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

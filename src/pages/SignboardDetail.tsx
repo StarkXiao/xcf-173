@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
@@ -16,7 +16,19 @@ const conditionLabels: Record<string, { text: string; className: string }> = {
 const SignboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toggleFavorite, toggleCompare, isFavorite, isInCompare } = useFavorites();
+  const { toggleFavorite, toggleCompare, addToCompare, maxCompare, isFavorite, isInCompare, compareList } = useFavorites();
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'warning' | 'error' = 'success') => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 2800);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const signboard = signboards.find(s => s.id === id);
 
@@ -45,6 +57,14 @@ const SignboardDetail: React.FC = () => {
 
   return (
     <div className="detail-container animate-fade-in">
+      {toast && (
+        <div className={`detail-toast toast-${toast.type}`}>
+          <span className="toast-icon">
+            {toast.type === 'success' ? '✅' : toast.type === 'warning' ? '⚠️' : '❌'}
+          </span>
+          <span className="toast-message">{toast.message}</span>
+        </div>
+      )}
       <button className="back-btn" onClick={() => navigate(-1)}>
         ← 返回
       </button>
@@ -126,7 +146,19 @@ const SignboardDetail: React.FC = () => {
             </button>
             <button
               className={`detail-action-btn compare-btn ${isInCompare(signboard.id) ? 'active' : ''}`}
-              onClick={() => toggleCompare(signboard.id)}
+              onClick={() => {
+                if (isInCompare(signboard.id)) {
+                  toggleCompare(signboard.id);
+                  showToast('已从对比列表移除', 'warning');
+                } else {
+                  const result = addToCompare(signboard.id);
+                  if (result.success) {
+                    showToast(`已加入对比（${compareList.length}/${maxCompare}）`, 'success');
+                  } else {
+                    showToast(result.reason || '添加失败', 'error');
+                  }
+                }
+              }}
             >
               <span>⚖️</span>
               <span>{isInCompare(signboard.id) ? '移出对比' : '加入对比'}</span>
@@ -158,9 +190,24 @@ const SignboardDetail: React.FC = () => {
               <button
                 className="batch-compare-btn"
                 onClick={() => {
+                  let added = 0;
+                  let skipped = 0;
+                  let failed = 0;
                   relatedSignboards.forEach(s => {
-                    if (!isInCompare(s.id)) toggleCompare(s.id);
+                    const result = addToCompare(s.id);
+                    if (result.success) added++;
+                    else if (result.alreadyIn) skipped++;
+                    else failed++;
                   });
+                  if (added > 0 && failed === 0) {
+                    showToast(`成功加入 ${added} 块招牌（${compareList.length}/${maxCompare}）`, 'success');
+                  } else if (added > 0 && failed > 0) {
+                    showToast(`加入 ${added} 块，${skipped} 块已在列表，${failed} 块因列表已满未能加入`, 'warning');
+                  } else if (added === 0 && failed > 0) {
+                    showToast(`对比列表已满（最多 ${maxCompare} 块），请先移除部分招牌`, 'error');
+                  } else if (skipped > 0) {
+                    showToast(`${skipped} 块招牌已在对比列表中`, 'warning');
+                  }
                 }}
                 title="将所有相关招牌加入对比"
               >

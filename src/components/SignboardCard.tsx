@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import type { Signboard } from '../types';
 import { useFavorites } from '../context/FavoritesContext';
@@ -19,14 +19,34 @@ const conditionLabels: Record<Signboard['condition'], { text: string; className:
 };
 
 const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = true }) => {
-  const { toggleFavorite, toggleCompare, isFavorite, isInCompare } = useFavorites();
+  const { toggleFavorite, toggleCompare, addToCompare, maxCompare, compareList, isFavorite, isInCompare } = useFavorites();
   const { getCollectionsContainingSignboard } = useCollections();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
+
+  const showToastMsg = (message: string, type: 'success' | 'warning' | 'error' = 'success') => {
+    setToast({ message, type });
+  };
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const inCollections = getCollectionsContainingSignboard(signboard.id);
 
   return (
     <div className="signboard-card animate-fade-in">
+      {toast && (
+        <div className={`card-toast card-toast-${toast.type}`}>
+          <span className="card-toast-icon">
+            {toast.type === 'success' ? '✓' : toast.type === 'warning' ? '!' : '✕'}
+          </span>
+          <span className="card-toast-msg">{toast.message}</span>
+        </div>
+      )}
       <Link to={`/signboard/${signboard.id}`} className="card-image-link">
         <div className="card-image">
           <img src={signboard.image} alt={signboard.name} loading="lazy" />
@@ -114,7 +134,19 @@ const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = 
               </button>
               <button
                 className={`action-btn compare-btn ${isInCompare(signboard.id) ? 'active' : ''}`}
-                onClick={() => toggleCompare(signboard.id)}
+                onClick={() => {
+                  if (isInCompare(signboard.id)) {
+                    toggleCompare(signboard.id);
+                    showToastMsg('已从对比列表移除', 'warning');
+                  } else {
+                    const result = addToCompare(signboard.id);
+                    if (result.success) {
+                      showToastMsg(`已加入对比（${compareList.length}/${maxCompare}）`, 'success');
+                    } else {
+                      showToastMsg(result.reason || '添加失败', 'error');
+                    }
+                  }
+                }}
                 title={isInCompare(signboard.id) ? '移出对比' : '加入对比'}
               >
                 <span className="action-icon">⚖️</span>
