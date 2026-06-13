@@ -9,6 +9,7 @@ import SearchBar, { type SearchQuery } from '../components/SearchBar';
 import SignboardCard from '../components/SignboardCard';
 import CollectionCard from '../components/CollectionCard';
 import RestorationTimeline from '../components/RestorationTimeline';
+import EraExplorer from '../components/EraExplorer';
 import { getNeighborhoodRecommendations } from '../utils/recommendation';
 import './Home.css';
 
@@ -28,6 +29,7 @@ const Home: React.FC = () => {
     fontStyle: '',
     tags: ''
   });
+  const [displayMode, setDisplayMode] = useState<'grid' | 'era'>('grid');
 
   const hasNonEmptyCollections = collections.some(c => c.items.length > 0);
 
@@ -243,6 +245,28 @@ const Home: React.FC = () => {
           resultCount={filteredSignboards.length}
         />
 
+        <div className="display-mode-header">
+          <div className="display-mode-toggle">
+            <button
+              className={`display-mode-btn ${displayMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setDisplayMode('grid')}
+            >
+              🔲 瀑布流视图
+            </button>
+            <button
+              className={`display-mode-btn ${displayMode === 'era' ? 'active' : ''}`}
+              onClick={() => setDisplayMode('era')}
+            >
+              📜 年代展开
+            </button>
+          </div>
+          <div className="display-mode-info">
+            <span className="result-badge">
+              共 <strong>{filteredSignboards.length}</strong> 块招牌
+            </span>
+          </div>
+        </div>
+
         <Filter
           filters={filters}
           onChange={setFilters}
@@ -256,7 +280,7 @@ const Home: React.FC = () => {
             <p className="empty-text">没有找到符合条件的招牌</p>
             <button className="empty-btn" onClick={handleReset}>清除筛选条件</button>
           </div>
-        ) : (
+        ) : displayMode === 'grid' ? (
           <div className="masonry-grid">
             {filteredSignboards.map((signboard, index) => (
               <div key={signboard.id} style={{ animationDelay: `${index * 0.05}s` }}>
@@ -264,6 +288,12 @@ const Home: React.FC = () => {
               </div>
             ))}
           </div>
+        ) : (
+          <EraExplorer
+            signboards={filteredSignboards}
+            onEraStageSelect={handleSelectEraStage}
+            selectedEraStage={filters.eraStage === '全部' ? undefined : filters.eraStage}
+          />
         )}
       </div>
     </div>
