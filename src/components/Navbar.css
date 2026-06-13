@@ -138,6 +138,52 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
+.auto-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.auto-theme-toggle:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.auto-theme-toggle.enabled {
+  background-color: color-mix(in srgb, var(--primary-color) 10%, var(--bg-primary));
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.auto-theme-toggle.active {
+  animation: themePulse 2s ease-in-out infinite;
+}
+
+.auto-theme-icon {
+  font-size: 1rem;
+}
+
+.auto-theme-text {
+  font-weight: 500;
+}
+
+@keyframes themePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary-color) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary-color) 0%, transparent);
+  }
+}
+
 @media (max-width: 900px) {
   .navbar-content {
     flex-wrap: wrap;
@@ -153,5 +199,13 @@
 
   .theme-label {
     display: none;
+  }
+
+  .auto-theme-text {
+    display: none;
+  }
+
+  .auto-theme-toggle {
+    padding: 0.45rem;
   }
 }

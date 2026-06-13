@@ -49,18 +49,32 @@
   box-sizing: border-box;
 }
 
+:root {
+  transition:
+    --primary-color 0.5s ease,
+    --secondary-color 0.5s ease,
+    --accent-color 0.5s ease,
+    --text-primary 0.5s ease,
+    --text-secondary 0.5s ease,
+    --text-muted 0.5s ease,
+    --bg-primary 0.5s ease,
+    --bg-secondary 0.5s ease,
+    --bg-card 0.5s ease,
+    --border-color 0.5s ease;
+}
+
 body {
   font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.7;
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 a {
   color: var(--primary-color);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: color 0.3s ease;
 }
 
 a:hover {
@@ -73,6 +87,7 @@ button {
   border: none;
   background: none;
   color: inherit;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 ::-webkit-scrollbar {

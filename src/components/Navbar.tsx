@@ -7,7 +7,7 @@ import type { ThemeMode } from '../types';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, autoTheme, setAutoTheme, activeSignboardId } = useTheme();
   const { compareList } = useFavorites();
   const { collections } = useCollections();
   const totalInCollections = collections.reduce((sum, c) => sum + c.items.length, 0);
@@ -60,6 +60,14 @@ const Navbar: React.FC = () => {
               </button>
             ))}
           </div>
+          <button
+            className={`auto-theme-toggle ${autoTheme ? 'enabled' : ''} ${activeSignboardId ? 'active' : ''}`}
+            onClick={() => setAutoTheme(!autoTheme)}
+            title={autoTheme ? '关闭随内容切换' : '开启随内容切换'}
+          >
+            <span className="auto-theme-icon">🎨</span>
+            <span className="auto-theme-text">{autoTheme ? '随内容' : '固定'}</span>
+          </button>
         </div>
       </div>
     </nav>

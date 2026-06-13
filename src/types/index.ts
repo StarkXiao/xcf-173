@@ -60,6 +60,21 @@ export interface Filters {
 
 export type ThemeMode = 'light' | 'dark' | 'sepia';
 
+export interface ThemePalette {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  bgPrimary: string;
+  bgSecondary: string;
+  bgCard: string;
+  borderColor: string;
+}
+
+export type EraMood = 'ancient' | 'lateQing' | 'republic' | 'prc' | 'reform' | 'modern';
+
 export const eraStages: EraStage[] = [
   {
     id: 'qing-early',

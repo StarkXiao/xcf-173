@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import { useOralArchives } from '../context/OralArchivesContext';
+import { useTheme } from '../context/ThemeContext';
 import RestorationTimeline from '../components/RestorationTimeline';
 import { getNeighborhoodRecommendations } from '../utils/recommendation';
 import type { OralArchive } from '../types';
@@ -20,6 +21,7 @@ const SignboardDetail: React.FC = () => {
   const navigate = useNavigate();
   const { toggleFavorite, toggleCompare, addToCompare, maxCompare, isFavorite, isInCompare, compareList } = useFavorites();
   const { saveArchive, deleteArchive, getArchive } = useOralArchives();
+  const { applyContentTheme, resetContentTheme } = useTheme();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
 
   const [isEditingArchive, setIsEditingArchive] = useState(false);
@@ -43,6 +45,15 @@ const SignboardDetail: React.FC = () => {
 
   const signboard = signboards.find(s => s.id === id);
   const existingArchive = id ? getArchive(id) : undefined;
+
+  useEffect(() => {
+    if (signboard) {
+      applyContentTheme(signboard);
+    }
+    return () => {
+      resetContentTheme();
+    };
+  }, [signboard, applyContentTheme, resetContentTheme]);
 
   useEffect(() => {
     if (existingArchive) {
