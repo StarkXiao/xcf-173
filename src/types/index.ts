@@ -235,6 +235,51 @@ export interface StatusTrackingContextType {
   getStatusStats: (signboardIds: string[]) => Record<ConditionStatus, number>;
 }
 
+export interface District {
+  id: string;
+  name: string;
+  city: string;
+  description: string;
+  coverImage: string;
+  signboardIds: string[];
+  color: string;
+  landmarks: string[];
+}
+
+export interface RouteStop {
+  signboardId: string;
+  order: number;
+  note: string;
+}
+
+export interface Route {
+  id: string;
+  name: string;
+  districtId: string;
+  description: string;
+  stops: RouteStop[];
+  duration: string;
+  distance: string;
+  difficulty: 'easy' | 'moderate' | 'advanced';
+  theme: string;
+  coverImage: string;
+}
+
+export interface RelayItem {
+  signboardId: string;
+  collectedAt: number;
+  note: string;
+}
+
+export type RoamingTheme = 'classic' | 'neon' | 'ink' | 'map';
+
+export const roamingThemeConfig: Record<RoamingTheme, { label: string; icon: string; accentColor: string; bgTint: string }> = {
+  classic: { label: '经典棕', icon: '📜', accentColor: '#8B4513', bgTint: '#F5E6C8' },
+  neon: { label: '霓虹夜', icon: '🌃', accentColor: '#FF6B6B', bgTint: '#1A1A2E' },
+  ink: { label: '水墨风', icon: '🖌️', accentColor: '#2C2C2C', bgTint: '#F0EDE8' },
+  map: { label: '地图纸', icon: '🗺️', accentColor: '#6B8E23', bgTint: '#E8E0C8' }
+};
+
 export const conditionStatusLabels: Record<ConditionStatus, { text: string; className: string; icon: string; color: string }> = {
   'well-preserved': { text: '保存完好', className: 'status-good', icon: '✨', color: '#22c55e' },
   'weathered': { text: '自然风化', className: 'status-weathered', icon: '🍂', color: '#f59e0b' },

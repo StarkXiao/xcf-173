@@ -11,6 +11,7 @@ import Favorites from './pages/Favorites';
 import Compare from './pages/Compare';
 import CompareReport from './pages/CompareReport';
 import CollectionDetail from './pages/CollectionDetail';
+import CityRoaming from './pages/CityRoaming';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
                       <Route path="/compare" element={<Compare />} />
                       <Route path="/compare-report" element={<CompareReport />} />
                       <Route path="/collection/:id" element={<CollectionDetail />} />
+                      <Route path="/roaming" element={<CityRoaming />} />
                     </Routes>
                   </main>
                 </div>
