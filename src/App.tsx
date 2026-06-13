@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
 import Favorites from './pages/Favorites';
 import Compare from './pages/Compare';
+import CompareReport from './pages/CompareReport';
 import CollectionDetail from './pages/CollectionDetail';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
                     <Route path="/signboard/:id" element={<SignboardDetail />} />
                     <Route path="/favorites" element={<Favorites />} />
                     <Route path="/compare" element={<Compare />} />
+                    <Route path="/compare-report" element={<CompareReport />} />
                     <Route path="/collection/:id" element={<CollectionDetail />} />
                   </Routes>
                 </main>

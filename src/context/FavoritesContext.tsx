@@ -5,21 +5,29 @@ import type { Signboard } from '../types';
 interface FavoritesContextType {
   favorites: string[];
   compareList: string[];
+  reportList: string[];
   maxCompare: number;
+  maxReport: number;
   toggleFavorite: (id: string) => void;
   toggleCompare: (id: string) => void;
   addToCompare: (id: string) => { success: boolean; reason?: string; alreadyIn: boolean };
   clearCompare: () => void;
+  toggleReport: (id: string) => void;
+  setReportList: (ids: string[]) => void;
+  clearReport: () => void;
   isFavorite: (id: string) => boolean;
   isInCompare: (id: string) => boolean;
+  isInReport: (id: string) => boolean;
   getFavoriteSignboards: (all: Signboard[]) => Signboard[];
   getCompareSignboards: (all: Signboard[]) => Signboard[];
+  getReportSignboards: (all: Signboard[]) => Signboard[];
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const MAX_COMPARE = 4;
+  const MAX_REPORT = 6;
 
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('signboard-favorites');
@@ -31,6 +39,11 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [reportList, setReportList] = useState<string[]>(() => {
+    const saved = localStorage.getItem('signboard-report');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     localStorage.setItem('signboard-favorites', JSON.stringify(favorites));
   }, [favorites]);
@@ -38,6 +51,10 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('signboard-compare', JSON.stringify(compareList));
   }, [compareList]);
+
+  useEffect(() => {
+    localStorage.setItem('signboard-report', JSON.stringify(reportList));
+  }, [reportList]);
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev =>
@@ -70,8 +87,23 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const clearCompare = () => setCompareList([]);
 
+  const toggleReport = (id: string) => {
+    setReportList(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(r => r !== id);
+      }
+      if (prev.length >= MAX_REPORT) {
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
+
+  const clearReport = () => setReportList([]);
+
   const isFavorite = (id: string) => favorites.includes(id);
   const isInCompare = (id: string) => compareList.includes(id);
+  const isInReport = (id: string) => reportList.includes(id);
 
   const getFavoriteSignboards = (all: Signboard[]) =>
     all.filter(s => favorites.includes(s.id));
@@ -79,20 +111,30 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
   const getCompareSignboards = (all: Signboard[]) =>
     all.filter(s => compareList.includes(s.id));
 
+  const getReportSignboards = (all: Signboard[]) =>
+    all.filter(s => reportList.includes(s.id));
+
   return (
     <FavoritesContext.Provider
       value={{
         favorites,
         compareList,
+        reportList,
         maxCompare: MAX_COMPARE,
+        maxReport: MAX_REPORT,
         toggleFavorite,
         toggleCompare,
         addToCompare,
         clearCompare,
+        toggleReport,
+        setReportList,
+        clearReport,
         isFavorite,
         isInCompare,
+        isInReport,
         getFavoriteSignboards,
-        getCompareSignboards
+        getCompareSignboards,
+        getReportSignboards
       }}
     >
       {children}

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
@@ -15,6 +15,7 @@ import './Favorites.css';
 type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives';
 
 const Favorites: React.FC = () => {
+  const navigate = useNavigate();
   const { getFavoriteSignboards, favorites } = useFavorites();
   const { collections, deleteCollection } = useCollections();
   const { archives, saveArchive, deleteArchive, getArchive } = useOralArchives();
@@ -198,6 +199,11 @@ const Favorites: React.FC = () => {
           {viewMode === 'collections' && (
             <button className="browse-btn" onClick={handleCreateCollection}>
               ➕ 新建藏册
+            </button>
+          )}
+          {favoriteSignboards.length >= 2 && (
+            <button className="browse-btn primary" onClick={() => navigate('/compare-report')}>
+              📋 生成对比报告
             </button>
           )}
           <Link to="/" className="browse-btn">

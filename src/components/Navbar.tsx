@@ -8,7 +8,7 @@ import './Navbar.css';
 
 const Navbar: React.FC = () => {
   const { theme, setTheme, autoTheme, setAutoTheme, activeSignboardId } = useTheme();
-  const { compareList } = useFavorites();
+  const { compareList, reportList } = useFavorites();
   const { collections } = useCollections();
   const totalInCollections = collections.reduce((sum, c) => sum + c.items.length, 0);
 
@@ -43,6 +43,11 @@ const Navbar: React.FC = () => {
             <span className="nav-icon">⚖️</span>
             <span>对比分析</span>
             {compareList.length > 0 && <span className="nav-badge">{compareList.length}</span>}
+          </NavLink>
+          <NavLink to="/compare-report" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">📋</span>
+            <span>对比报告</span>
+            {reportList.length > 0 && <span className="nav-badge">{reportList.length}</span>}
           </NavLink>
         </div>
 
