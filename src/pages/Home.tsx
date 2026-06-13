@@ -9,6 +9,7 @@ import SearchBar, { type SearchQuery } from '../components/SearchBar';
 import SignboardCard from '../components/SignboardCard';
 import CollectionCard from '../components/CollectionCard';
 import RestorationTimeline from '../components/RestorationTimeline';
+import { getNeighborhoodRecommendations } from '../utils/recommendation';
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -29,6 +30,11 @@ const Home: React.FC = () => {
   });
 
   const hasNonEmptyCollections = collections.some(c => c.items.length > 0);
+
+  const featuredSignboard = signboards[0];
+  const featuredRecommendations = useMemo(() => {
+    return getNeighborhoodRecommendations(featuredSignboard, signboards, { limit: 4, minScore: 10 });
+  }, [featuredSignboard]);
 
   const filteredSignboards = useMemo(() => {
     return signboards.filter(s => {
@@ -129,6 +135,71 @@ const Home: React.FC = () => {
             <div className="stat-item">
               <span className="stat-number">{new Set(signboards.map(s => s.fontStyle)).size}</span>
               <span className="stat-label">种字体风格</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="discovery-section">
+        <div className="discovery-section-header">
+          <div className="discovery-title-wrap">
+            <h3 className="discovery-section-title">🔍 今日发现</h3>
+            <p className="discovery-subtitle">
+              从「{featuredSignboard.name}」出发，探索同街区的招牌故事
+            </p>
+          </div>
+          <Link to={`/signboard/${featuredSignboard.id}`} className="discovery-more-link">
+            查看详情 →
+          </Link>
+        </div>
+
+        <div className="discovery-content">
+          <Link to={`/signboard/${featuredSignboard.id}`} className="discovery-featured-card">
+            <div className="discovery-featured-image">
+              <img src={featuredSignboard.image} alt={featuredSignboard.name} />
+              <div className="discovery-featured-overlay">
+                <span className="discovery-featured-tag">今日精选</span>
+              </div>
+            </div>
+            <div className="discovery-featured-info">
+              <div className="discovery-featured-meta">
+                <span className="discovery-era">{featuredSignboard.era}</span>
+                <span className="discovery-location">📍 {featuredSignboard.location}</span>
+              </div>
+              <h4 className="discovery-featured-title">{featuredSignboard.name}</h4>
+              <p className="discovery-featured-desc">{featuredSignboard.description}</p>
+            </div>
+          </Link>
+
+          <div className="discovery-recommendations">
+            <div className="discovery-rec-title">
+              <span>🏘️ 同街区发现</span>
+              <span className="discovery-rec-count">{featuredRecommendations.length} 个相关</span>
+            </div>
+            <div className="discovery-rec-list">
+              {featuredRecommendations.map((rec, idx) => (
+                <Link
+                  key={rec.signboard.id}
+                  to={`/signboard/${rec.signboard.id}`}
+                  className="discovery-rec-item"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
+                  <div className="discovery-rec-image">
+                    <img src={rec.signboard.image} alt={rec.signboard.name} loading="lazy" />
+                  </div>
+                  <div className="discovery-rec-info">
+                    <div className="discovery-rec-header">
+                      <h5 className="discovery-rec-name">{rec.signboard.name}</h5>
+                      <span className="discovery-rec-score">{rec.score}%</span>
+                    </div>
+                    <p className="discovery-rec-location">📍 {rec.signboard.location}</p>
+                    <div className="discovery-rec-tags">
+                      <span className="discovery-rec-tag">{rec.signboard.era}</span>
+                      <span className="discovery-rec-tag">{rec.signboard.fontStyle}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

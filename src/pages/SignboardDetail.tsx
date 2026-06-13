@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
-import SignboardCard from '../components/SignboardCard';
 import RestorationTimeline from '../components/RestorationTimeline';
+import { getNeighborhoodRecommendations } from '../utils/recommendation';
 import './SignboardDetail.css';
 
 const conditionLabels: Record<string, { text: string; className: string }> = {
@@ -45,15 +45,9 @@ const SignboardDetail: React.FC = () => {
     );
   }
 
-  const relatedSignboards = signboards
-    .filter(s =>
-      s.id !== signboard.id && (
-        s.era === signboard.era ||
-        s.fontStyle === signboard.fontStyle ||
-        s.tags.some(t => signboard.tags.includes(t))
-      )
-    )
-    .slice(0, 3);
+  const neighborhoodRecommendations = useMemo(() => {
+    return getNeighborhoodRecommendations(signboard, signboards, { limit: 6, minScore: 10 });
+  }, [signboard]);
 
   return (
     <div className="detail-container animate-fade-in">
@@ -182,19 +176,24 @@ const SignboardDetail: React.FC = () => {
 
       <RestorationTimeline history={signboard.restorationHistory} />
 
-      {relatedSignboards.length > 0 && (
-        <div className="related-section">
-          <div className="related-section-header">
-            <h3 className="section-title">🔗 相关招牌</h3>
-            <div className="related-actions">
+      {neighborhoodRecommendations.length > 0 && (
+        <div className="neighborhood-section">
+          <div className="neighborhood-section-header">
+            <div className="neighborhood-title-wrap">
+              <h3 className="section-title neighborhood-title">🏘️ 同街区发现</h3>
+              <p className="neighborhood-subtitle">
+                基于位置、年代和风格智能推荐，发现更多相似的招牌故事
+              </p>
+            </div>
+            <div className="neighborhood-actions">
               <button
                 className="batch-compare-btn"
                 onClick={() => {
                   let added = 0;
                   let skipped = 0;
                   let failed = 0;
-                  relatedSignboards.forEach(s => {
-                    const result = addToCompare(s.id);
+                  neighborhoodRecommendations.forEach(r => {
+                    const result = addToCompare(r.signboard.id);
                     if (result.success) added++;
                     else if (result.alreadyIn) skipped++;
                     else failed++;
@@ -209,18 +208,90 @@ const SignboardDetail: React.FC = () => {
                     showToast(`${skipped} 块招牌已在对比列表中`, 'warning');
                   }
                 }}
-                title="将所有相关招牌加入对比"
+                title="将所有推荐招牌加入对比"
               >
                 ⚖️ 全部加入对比
               </button>
-              <Link to="/compare" className="goto-compare-link">
-                📊 前往对比页 →
+              <Link to="/" className="back-home-link">
+                🏠 返回首页 →
               </Link>
             </div>
           </div>
-          <div className="related-grid">
-            {relatedSignboards.map(s => (
-              <SignboardCard key={s.id} signboard={s} />
+
+          <div className="neighborhood-grid">
+            {neighborhoodRecommendations.map((result, index) => (
+              <div key={result.signboard.id} className="neighborhood-card-wrapper" style={{ animationDelay: `${index * 0.08}s` }}>
+                <div className="neighborhood-card">
+                  <Link to={`/signboard/${result.signboard.id}`} className="neighborhood-card-link">
+                    <div className="neighborhood-card-image">
+                      <img src={result.signboard.image} alt={result.signboard.name} loading="lazy" />
+                      <div className="neighborhood-card-overlay">
+                        <span className="neighborhood-card-era">{result.signboard.era}</span>
+                        <span className="neighborhood-score-badge">
+                          匹配度 {result.score}%
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <div className="neighborhood-card-content">
+                    <Link to={`/signboard/${result.signboard.id}`} className="neighborhood-card-title-link">
+                      <h4 className="neighborhood-card-title">{result.signboard.name}</h4>
+                    </Link>
+                    <p className="neighborhood-card-shop">{result.signboard.shopName}</p>
+
+                    <div className="neighborhood-match-info">
+                      <div className="match-item">
+                        <span className="match-icon">📍</span>
+                        <span className="match-text">{result.matchDetails.locationMatch}</span>
+                      </div>
+                      <div className="match-item">
+                        <span className="match-icon">🕰️</span>
+                        <span className="match-text">{result.matchDetails.eraMatch}</span>
+                      </div>
+                      <div className="match-item">
+                        <span className="match-icon">🎨</span>
+                        <span className="match-text">{result.matchDetails.styleMatch}</span>
+                      </div>
+                    </div>
+
+                    <div className="neighborhood-score-bar">
+                      <div className="score-label">综合匹配度</div>
+                      <div className="score-track">
+                        <div
+                          className="score-fill"
+                          style={{ width: `${result.score}%` }}
+                        />
+                      </div>
+                      <div className="score-value">{result.score}%</div>
+                    </div>
+
+                    <div className="neighborhood-score-breakdown">
+                      <div className="score-breakdown-item">
+                        <span className="breakdown-label">位置</span>
+                        <div className="breakdown-bar">
+                          <div className="breakdown-fill location-fill" style={{ width: `${result.matchDetails.locationScore}%` }} />
+                        </div>
+                        <span className="breakdown-value">{result.matchDetails.locationScore}</span>
+                      </div>
+                      <div className="score-breakdown-item">
+                        <span className="breakdown-label">年代</span>
+                        <div className="breakdown-bar">
+                          <div className="breakdown-fill era-fill" style={{ width: `${result.matchDetails.eraScore}%` }} />
+                        </div>
+                        <span className="breakdown-value">{result.matchDetails.eraScore}</span>
+                      </div>
+                      <div className="score-breakdown-item">
+                        <span className="breakdown-label">风格</span>
+                        <div className="breakdown-bar">
+                          <div className="breakdown-fill style-fill" style={{ width: `${result.matchDetails.styleScore}%` }} />
+                        </div>
+                        <span className="breakdown-value">{result.matchDetails.styleScore}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
