@@ -307,7 +307,7 @@ const CityRoaming: React.FC = () => {
                 key={route.id}
                 className="route-card animate-fade-in"
                 style={{ animationDelay: `${idx * 0.1}s` }}
-                onClick={() => setSelectedRoute(route)}
+                onClick={() => handleSelectRoute(route)}
               >
                 <div className="route-card-image">
                   <img src={route.coverImage} alt={route.name} loading="lazy" />
