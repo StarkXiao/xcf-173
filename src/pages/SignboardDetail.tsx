@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
+import { useOralArchives } from '../context/OralArchivesContext';
 import RestorationTimeline from '../components/RestorationTimeline';
 import { getNeighborhoodRecommendations } from '../utils/recommendation';
+import type { OralArchive } from '../types';
 import './SignboardDetail.css';
 
 const conditionLabels: Record<string, { text: string; className: string }> = {
@@ -17,7 +19,16 @@ const SignboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toggleFavorite, toggleCompare, addToCompare, maxCompare, isFavorite, isInCompare, compareList } = useFavorites();
+  const { saveArchive, deleteArchive, getArchive } = useOralArchives();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
+
+  const [isEditingArchive, setIsEditingArchive] = useState(false);
+  const [archiveForm, setArchiveForm] = useState<Partial<OralArchive>>({
+    storySummary: '',
+    sourceNote: '',
+    informant: '',
+    recordingDate: ''
+  });
 
   const showToast = (message: string, type: 'success' | 'warning' | 'error' = 'success') => {
     setToast({ message, type });
@@ -31,6 +42,57 @@ const SignboardDetail: React.FC = () => {
   }, [toast]);
 
   const signboard = signboards.find(s => s.id === id);
+  const existingArchive = id ? getArchive(id) : undefined;
+
+  useEffect(() => {
+    if (existingArchive) {
+      setArchiveForm({
+        storySummary: existingArchive.storySummary,
+        sourceNote: existingArchive.sourceNote,
+        informant: existingArchive.informant,
+        recordingDate: existingArchive.recordingDate
+      });
+      setIsEditingArchive(false);
+    } else {
+      setArchiveForm({
+        storySummary: '',
+        sourceNote: '',
+        informant: '',
+        recordingDate: ''
+      });
+    }
+  }, [id, existingArchive]);
+
+  const handleSaveArchive = () => {
+    if (!id) return;
+    if (!archiveForm.storySummary?.trim() && !archiveForm.sourceNote?.trim()) {
+      showToast('请至少填写故事摘要或来源备注', 'warning');
+      return;
+    }
+    saveArchive(id, archiveForm);
+    setIsEditingArchive(false);
+    showToast('口述档案已保存', 'success');
+  };
+
+  const handleDeleteArchive = () => {
+    if (!id) return;
+    if (!window.confirm('确定要删除这份口述档案吗？此操作不可撤销。')) return;
+    deleteArchive(id);
+    setIsEditingArchive(false);
+    showToast('口述档案已删除', 'warning');
+  };
+
+  const handleStartEdit = () => {
+    if (existingArchive) {
+      setArchiveForm({
+        storySummary: existingArchive.storySummary,
+        sourceNote: existingArchive.sourceNote,
+        informant: existingArchive.informant,
+        recordingDate: existingArchive.recordingDate
+      });
+    }
+    setIsEditingArchive(true);
+  };
 
   if (!signboard) {
     return (
@@ -172,6 +234,199 @@ const SignboardDetail: React.FC = () => {
         <div className="description-content">
           <p>{signboard.description}</p>
         </div>
+      </div>
+
+      <div className="oral-archive-section">
+        <div className="oral-archive-header">
+          <div className="oral-archive-title-wrap">
+            <h3 className="section-title oral-archive-title">
+              🎙️ 招牌口述档案
+            </h3>
+            <p className="oral-archive-subtitle">
+              记录这块招牌背后的口耳相传故事、采访笔记与来源备注
+            </p>
+          </div>
+          {existingArchive && !isEditingArchive && (
+            <div className="oral-archive-actions">
+              <button className="archive-action-btn edit-btn" onClick={handleStartEdit}>
+                ✏️ 编辑档案
+              </button>
+              <button className="archive-action-btn delete-btn" onClick={handleDeleteArchive}>
+                🗑️ 删除
+              </button>
+            </div>
+          )}
+          {!existingArchive && !isEditingArchive && (
+            <button className="archive-create-btn" onClick={() => setIsEditingArchive(true)}>
+              ➕ 建立口述档案
+            </button>
+          )}
+        </div>
+
+        {existingArchive && !isEditingArchive ? (
+          <div className="oral-archive-content">
+            <div className="archive-meta-row">
+              {existingArchive.informant && (
+                <div className="archive-meta-item">
+                  <span className="archive-meta-icon">👤</span>
+                  <span className="archive-meta-label">口述者</span>
+                  <span className="archive-meta-value">{existingArchive.informant}</span>
+                </div>
+              )}
+              {existingArchive.recordingDate && (
+                <div className="archive-meta-item">
+                  <span className="archive-meta-icon">📅</span>
+                  <span className="archive-meta-label">记录日期</span>
+                  <span className="archive-meta-value">{existingArchive.recordingDate}</span>
+                </div>
+              )}
+              <div className="archive-meta-item">
+                <span className="archive-meta-icon">🕐</span>
+                <span className="archive-meta-label">建档时间</span>
+                <span className="archive-meta-value">
+                  {new Date(existingArchive.recordedAt).toLocaleDateString('zh-CN')}
+                </span>
+              </div>
+              {existingArchive.updatedAt !== existingArchive.recordedAt && (
+                <div className="archive-meta-item">
+                  <span className="archive-meta-icon">✏️</span>
+                  <span className="archive-meta-label">最近更新</span>
+                  <span className="archive-meta-value">
+                    {new Date(existingArchive.updatedAt).toLocaleDateString('zh-CN')}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {existingArchive.storySummary && (
+              <div className="archive-field">
+                <div className="archive-field-label">
+                  <span className="field-icon">📖</span> 故事摘要
+                </div>
+                <div className="archive-field-text story-text">
+                  {existingArchive.storySummary.split('\n').map((line, idx) => (
+                    <p key={idx}>{line || <br />}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {existingArchive.sourceNote && (
+              <div className="archive-field">
+                <div className="archive-field-label">
+                  <span className="field-icon">📝</span> 来源备注
+                </div>
+                <div className="archive-field-text source-text">
+                  {existingArchive.sourceNote.split('\n').map((line, idx) => (
+                    <p key={idx}>{line || <br />}</p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : isEditingArchive ? (
+          <div className="oral-archive-form">
+            <div className="archive-form-row">
+              <div className="archive-form-group half">
+                <label className="form-label">
+                  <span className="label-icon">👤</span> 口述者（可选）
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="如：王老第三代传人王老先生"
+                  value={archiveForm.informant || ''}
+                  onChange={e => setArchiveForm(prev => ({ ...prev, informant: e.target.value }))}
+                />
+              </div>
+              <div className="archive-form-group half">
+                <label className="form-label">
+                  <span className="label-icon">📅</span> 记录日期（可选）
+                </label>
+                <input
+                  type="date"
+                  className="form-input"
+                  value={archiveForm.recordingDate || ''}
+                  onChange={e => setArchiveForm(prev => ({ ...prev, recordingDate: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="archive-form-group">
+              <label className="form-label">
+                <span className="label-icon">📖</span> 故事摘要
+                <span className="label-hint">记录招牌背后流传的故事、趣闻、历史典故等</span>
+              </label>
+              <textarea
+                className="form-textarea"
+                rows={6}
+                placeholder="例如：据王老口述，这块招牌是他的爷爷在1935年请当地著名书法家题写，当时花了三块大洋..."
+                value={archiveForm.storySummary || ''}
+                onChange={e => setArchiveForm(prev => ({ ...prev, storySummary: e.target.value }))}
+              />
+              <div className="char-count">{archiveForm.storySummary?.length || 0} / 2000</div>
+            </div>
+
+            <div className="archive-form-group">
+              <label className="form-label">
+                <span className="label-icon">📝</span> 来源备注
+                <span className="label-hint">记录资料来源、采访地点、参考文献等</span>
+              </label>
+              <textarea
+                className="form-textarea"
+                rows={4}
+                placeholder="例如：2024年3月15日采访于上海静安区南京西路老店；参考《上海老字号史料汇编》第142页"
+                value={archiveForm.sourceNote || ''}
+                onChange={e => setArchiveForm(prev => ({ ...prev, sourceNote: e.target.value }))}
+              />
+              <div className="char-count">{archiveForm.sourceNote?.length || 0} / 1000</div>
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="form-btn cancel-btn"
+                onClick={() => {
+                  setIsEditingArchive(false);
+                  if (existingArchive) {
+                    setArchiveForm({
+                      storySummary: existingArchive.storySummary,
+                      sourceNote: existingArchive.sourceNote,
+                      informant: existingArchive.informant,
+                      recordingDate: existingArchive.recordingDate
+                    });
+                  } else {
+                    setArchiveForm({
+                      storySummary: '',
+                      sourceNote: '',
+                      informant: '',
+                      recordingDate: ''
+                    });
+                  }
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className="form-btn save-btn"
+                onClick={handleSaveArchive}
+              >
+                💾 保存档案
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="oral-archive-empty">
+            <div className="empty-archive-icon">🎙️</div>
+            <p className="empty-archive-text">
+              还没有为这块招牌建立口述档案
+            </p>
+            <p className="empty-archive-hint">
+              记录口述历史，让招牌的故事不被遗忘
+            </p>
+          </div>
+        )}
       </div>
 
       <RestorationTimeline history={signboard.restorationHistory} />

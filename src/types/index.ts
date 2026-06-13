@@ -21,6 +21,16 @@ export interface EraStage {
   color: string;
 }
 
+export interface OralArchive {
+  signboardId: string;
+  storySummary: string;
+  sourceNote: string;
+  recordedAt: number;
+  updatedAt: number;
+  informant?: string;
+  recordingDate?: string;
+}
+
 export interface Signboard {
   id: string;
   name: string;
@@ -174,4 +184,13 @@ export interface CollectionsContextType {
   setCollectionCover: (collectionId: string, signboardId: string | undefined) => void;
   getCollectionsContainingSignboard: (signboardId: string) => Collection[];
   isSignboardInCollection: (collectionId: string, signboardId: string) => boolean;
+}
+
+export interface OralArchivesContextType {
+  archives: OralArchive[];
+  saveArchive: (signboardId: string, data: Partial<Omit<OralArchive, 'signboardId' | 'recordedAt' | 'updatedAt'>>) => void;
+  deleteArchive: (signboardId: string) => void;
+  getArchive: (signboardId: string) => OralArchive | undefined;
+  hasArchive: (signboardId: string) => boolean;
+  getArchivesForSignboards: (signboardIds: string[]) => OralArchive[];
 }
