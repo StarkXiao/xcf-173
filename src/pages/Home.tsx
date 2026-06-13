@@ -4,6 +4,7 @@ import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
 import { getEraStageByYear } from '../types';
 import { useCollections } from '../context/CollectionsContext';
+import { useStatusTracking } from '../context/StatusTrackingContext';
 import Filter from '../components/Filter';
 import SearchBar, { type SearchQuery } from '../components/SearchBar';
 import SignboardCard from '../components/SignboardCard';
@@ -15,13 +16,16 @@ import './Home.css';
 
 const Home: React.FC = () => {
   const { collections } = useCollections();
+  const { getLatestStatus, hasRecords, getRecordsForSignboard } = useStatusTracking();
   const [filters, setFilters] = useState<Filters>({
     era: '全部',
     fontStyle: '全部',
     tag: '全部',
     condition: '全部',
     eraStage: '全部',
-    hasRestoration: '全部'
+    hasRestoration: '全部',
+    hasStatusTracking: '全部',
+    userStatus: '全部'
   });
   const [searchQuery, setSearchQuery] = useState<SearchQuery>({
     shopName: '',
@@ -80,9 +84,27 @@ const Home: React.FC = () => {
         if (filters.hasRestoration === 'multi-restoration' && history.filter(h => h.type === 'restoration').length < 2) return false;
       }
 
+      if (filters.hasStatusTracking !== '全部') {
+        const hasTracking = hasRecords(s.id);
+        const userRecords = getRecordsForSignboard(s.id);
+        if (filters.hasStatusTracking === 'has-tracking' && !hasTracking) return false;
+        if (filters.hasStatusTracking === 'no-tracking' && hasTracking) return false;
+        if (filters.hasStatusTracking === 'has-damaged-record' && !userRecords.some(r => r.condition === 'damaged')) return false;
+        if (filters.hasStatusTracking === 'has-restored-record' && !userRecords.some(r => r.condition === 'restored')) return false;
+      }
+
+      if (filters.userStatus !== '全部') {
+        if (filters.userStatus === 'no-tracking') {
+          if (hasRecords(s.id)) return false;
+        } else {
+          const userLatest = getLatestStatus(s.id);
+          if (!userLatest || userLatest !== filters.userStatus) return false;
+        }
+      }
+
       return true;
     });
-  }, [filters, searchQuery]);
+  }, [filters, searchQuery, hasRecords, getRecordsForSignboard, getLatestStatus]);
 
   const handleReset = () => {
     setFilters({
@@ -91,7 +113,9 @@ const Home: React.FC = () => {
       tag: '全部',
       condition: '全部',
       eraStage: '全部',
-      hasRestoration: '全部'
+      hasRestoration: '全部',
+      hasStatusTracking: '全部',
+      userStatus: '全部'
     });
     setSearchQuery({
       shopName: '',

@@ -4,21 +4,23 @@ import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import { useOralArchives } from '../context/OralArchivesContext';
+import { useStatusTracking } from '../context/StatusTrackingContext';
 import SignboardCard from '../components/SignboardCard';
 import CollectionCard from '../components/CollectionCard';
 import CollectionEditorModal from '../components/CollectionEditorModal';
 import RestorationTimeline from '../components/RestorationTimeline';
-import { eraStages, getSignboardEraStages, getEventsInEraStage } from '../types';
-import type { Signboard, RestorationEvent, Collection, OralArchive } from '../types';
+import { eraStages, getSignboardEraStages, getEventsInEraStage, conditionStatusLabels } from '../types';
+import type { Signboard, RestorationEvent, Collection, OralArchive, ConditionStatus } from '../types';
 import './Favorites.css';
 
-type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives';
+type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives' | 'status-grouped';
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
   const { getFavoriteSignboards, favorites } = useFavorites();
   const { collections, deleteCollection } = useCollections();
   const { archives, saveArchive, deleteArchive, getArchive } = useOralArchives();
+  const { getLatestStatus, getStatusStats, getRecordsForSignboard } = useStatusTracking();
   const [viewMode, setViewMode] = useState<ViewMode>('collections');
   const [showEditor, setShowEditor] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
@@ -31,6 +33,32 @@ const Favorites: React.FC = () => {
   });
   const [archiveSearchKeyword, setArchiveSearchKeyword] = useState('');
   const favoriteSignboards = getFavoriteSignboards(signboards);
+
+  const statusStats = useMemo(() => {
+    const favoriteIds = favoriteSignboards.map(s => s.id);
+    return getStatusStats(favoriteIds);
+  }, [favoriteSignboards, getStatusStats]);
+
+  const groupedByStatus = useMemo(() => {
+    const groups: Record<string, Signboard[]> = {};
+    const statusOrder: ConditionStatus[] = ['well-preserved', 'restored', 'weathered', 'damaged'];
+    
+    statusOrder.forEach(status => {
+      groups[status] = [];
+    });
+    groups['no-tracking'] = [];
+
+    favoriteSignboards.forEach(s => {
+      const userStatus = getLatestStatus(s.id);
+      if (userStatus) {
+        groups[userStatus].push(s);
+      } else {
+        groups['no-tracking'].push(s);
+      }
+    });
+
+    return groups;
+  }, [favoriteSignboards, getLatestStatus]);
 
   const groupedByEraStage = useMemo(() => {
     const groups: Record<string, Signboard[]> = {};
@@ -153,7 +181,8 @@ const Favorites: React.FC = () => {
           <p className="page-subtitle">
             已收藏 <strong>{favorites.length}</strong> 块珍贵招牌 ·
             共 <strong>{collections.length}</strong> 个藏册 ·
-            口述档案 <strong>{archives.length}</strong> 份
+            口述档案 <strong>{archives.length}</strong> 份 ·
+            状态追踪 <strong>{Object.values(statusStats).reduce((a, b) => a + b, 0)}</strong> 份
           </p>
         </div>
         <div className="header-actions-row">
@@ -179,6 +208,13 @@ const Favorites: React.FC = () => {
                 title="网格视图"
               >
                 🔲 网格
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'status-grouped' ? 'active' : ''}`}
+                onClick={() => setViewMode('status-grouped')}
+                title="按状态分组"
+              >
+                📋 状态分组
               </button>
               <button
                 className={`view-btn ${viewMode === 'grouped' ? 'active' : ''}`}
@@ -488,6 +524,62 @@ const Favorites: React.FC = () => {
                 </div>
               );
             })}
+        </div>
+      ) : viewMode === 'status-grouped' ? (
+        <div className="grouped-view status-grouped-view">
+          {Object.entries(groupedByStatus).map(([statusKey, items]) => {
+            const isNoTracking = statusKey === 'no-tracking';
+            const statusInfo = isNoTracking
+              ? { text: '暂无追踪记录', icon: '📋', color: '#9ca3af', className: 'status-no-tracking' }
+              : conditionStatusLabels[statusKey as ConditionStatus];
+
+            if (items.length === 0) return null;
+
+            return (
+              <div key={statusKey} className="status-group">
+                <div className="status-group-header" style={{ borderColor: statusInfo.color }}>
+                  <h3 className="status-group-title" style={{ color: statusInfo.color }}>
+                    {statusInfo.icon} {statusInfo.text}
+                  </h3>
+                  <span className="status-group-count">{items.length} 块招牌</span>
+                </div>
+                <div className="masonry-grid">
+                  {items.map(signboard => {
+                    const statusRecords = getRecordsForSignboard(signboard.id);
+                    return (
+                      <div key={signboard.id} className="grouped-card-wrapper">
+                        <SignboardCard signboard={signboard} />
+                        {statusRecords.length > 0 && (
+                          <div className="status-records-panel">
+                            <div className="status-records-title">
+                              📋 状态记录（{statusRecords.length}条）
+                            </div>
+                            <div className="status-records-list">
+                              {statusRecords.slice(0, 3).map(record => (
+                                <div key={record.id} className="status-record-item">
+                                  <span
+                                    className="record-status-dot"
+                                    style={{ backgroundColor: conditionStatusLabels[record.condition].color }}
+                                  />
+                                  <span className="record-date">{record.date}</span>
+                                  <span className="record-condition">
+                                    {conditionStatusLabels[record.condition].text}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <Link to={`/signboard/${signboard.id}`} className="view-more-status">
+                              查看详情 →
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="timeline-view">

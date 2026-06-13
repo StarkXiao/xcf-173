@@ -3,6 +3,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 import { CollectionsProvider } from './context/CollectionsContext';
 import { OralArchivesProvider } from './context/OralArchivesContext';
+import { StatusTrackingProvider } from './context/StatusTrackingContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
@@ -17,21 +18,23 @@ function App() {
       <FavoritesProvider>
         <CollectionsProvider>
           <OralArchivesProvider>
-            <BrowserRouter>
-              <div className="app">
-                <Navbar />
-                <main>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/signboard/:id" element={<SignboardDetail />} />
-                    <Route path="/favorites" element={<Favorites />} />
-                    <Route path="/compare" element={<Compare />} />
-                    <Route path="/compare-report" element={<CompareReport />} />
-                    <Route path="/collection/:id" element={<CollectionDetail />} />
-                  </Routes>
-                </main>
-              </div>
-            </BrowserRouter>
+            <StatusTrackingProvider>
+              <BrowserRouter>
+                <div className="app">
+                  <Navbar />
+                  <main>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/signboard/:id" element={<SignboardDetail />} />
+                      <Route path="/favorites" element={<Favorites />} />
+                      <Route path="/compare" element={<Compare />} />
+                      <Route path="/compare-report" element={<CompareReport />} />
+                      <Route path="/collection/:id" element={<CollectionDetail />} />
+                    </Routes>
+                  </main>
+                </div>
+              </BrowserRouter>
+            </StatusTrackingProvider>
           </OralArchivesProvider>
         </CollectionsProvider>
       </FavoritesProvider>

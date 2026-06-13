@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Signboard } from '../types';
+import { conditionStatusLabels } from '../types';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
+import { useStatusTracking } from '../context/StatusTrackingContext';
 import AddToCollectionModal from './AddToCollectionModal';
 import './SignboardCard.css';
 
@@ -21,6 +23,7 @@ const conditionLabels: Record<Signboard['condition'], { text: string; className:
 const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = true }) => {
   const { toggleFavorite, toggleCompare, addToCompare, maxCompare, compareList, isFavorite, isInCompare } = useFavorites();
   const { getCollectionsContainingSignboard } = useCollections();
+  const { getLatestStatus, hasRecords, getRecordsForSignboard } = useStatusTracking();
   const [showAddModal, setShowAddModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
 
@@ -37,6 +40,19 @@ const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = 
 
   const inCollections = getCollectionsContainingSignboard(signboard.id);
 
+  const displayCondition = useMemo(() => {
+    const userStatus = getLatestStatus(signboard.id);
+    return userStatus || signboard.condition;
+  }, [signboard.id, signboard.condition, getLatestStatus]);
+
+  const hasUserStatusRecords = useMemo(() => {
+    return hasRecords(signboard.id);
+  }, [signboard.id, hasRecords]);
+
+  const statusRecordCount = useMemo(() => {
+    return getRecordsForSignboard(signboard.id).length;
+  }, [signboard.id, getRecordsForSignboard]);
+
   return (
     <div className="signboard-card animate-fade-in">
       {toast && (
@@ -52,8 +68,15 @@ const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = 
           <img src={signboard.image} alt={signboard.name} loading="lazy" />
           <div className="card-overlay">
             <span className="card-era">{signboard.era}</span>
-            <span className={`card-condition ${conditionLabels[signboard.condition].className}`}>
-              {conditionLabels[signboard.condition].text}
+            <span
+              className={`card-condition ${conditionLabels[displayCondition].className}`}
+              style={{
+                borderColor: conditionStatusLabels[displayCondition].color,
+                color: conditionStatusLabels[displayCondition].color
+              }}
+            >
+              {conditionStatusLabels[displayCondition].icon} {conditionLabels[displayCondition].text}
+              {hasUserStatusRecords && <span className="user-status-indicator" title="有用户状态追踪记录">●</span>}
             </span>
           </div>
         </div>
@@ -98,6 +121,25 @@ const SignboardCard: React.FC<SignboardCardProps> = ({ signboard, showActions = 
           <span className="meta-icon">📍</span>
           <span className="location-text">{signboard.location}</span>
         </div>
+
+        {hasUserStatusRecords && (
+          <div className="card-status-tracking">
+            <span className="status-tracking-icon">📋</span>
+            <span className="status-tracking-text">
+              状态追踪 · {statusRecordCount}条记录
+            </span>
+            <span
+              className="status-tracking-badge"
+              style={{
+                backgroundColor: conditionStatusLabels[displayCondition].color + '20',
+                color: conditionStatusLabels[displayCondition].color,
+                borderColor: conditionStatusLabels[displayCondition].color
+              }}
+            >
+              {conditionStatusLabels[displayCondition].icon} {conditionStatusLabels[displayCondition].text}
+            </span>
+          </div>
+        )}
 
         {showActions && (
           <>

@@ -322,3 +322,66 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.card-condition {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-status-indicator {
+  font-size: 0.5rem;
+  margin-left: 2px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.card-status-tracking {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.status-tracking-icon {
+  font-size: 0.9rem;
+}
+
+.status-tracking-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-tracking-badge {
+  margin-left: auto;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+@media (max-width: 600px) {
+  .card-status-tracking {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .status-tracking-badge {
+    margin-left: 0;
+  }
+}

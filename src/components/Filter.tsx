@@ -16,6 +16,15 @@ const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount
     onChange({ ...filters, [key]: value });
   };
 
+  const userStatusOptions = [
+    { value: '全部', label: '全部用户状态' },
+    { value: 'well-preserved', label: '✨ 保存完好（用户记录）' },
+    { value: 'weathered', label: '🍂 自然风化（用户记录）' },
+    { value: 'damaged', label: '⚠️ 有所损坏（用户记录）' },
+    { value: 'restored', label: '🏛️ 经过修复（用户记录）' },
+    { value: 'no-tracking', label: '暂无追踪记录' }
+  ];
+
   return (
     <div className="filter-container">
       <div className="filter-header">
@@ -69,7 +78,7 @@ const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount
         </div>
 
         <div className="filter-group">
-          <label className="filter-label">保存状态</label>
+          <label className="filter-label">原始保存状态</label>
           <select
             className="filter-select"
             value={filters.condition}
@@ -78,6 +87,34 @@ const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount
             {conditions.map(c => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label className="filter-label">用户记录状态</label>
+          <select
+            className="filter-select"
+            value={filters.userStatus}
+            onChange={(e) => handleChange('userStatus', e.target.value)}
+          >
+            {userStatusOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label className="filter-label">状态追踪</label>
+          <select
+            className="filter-select"
+            value={filters.hasStatusTracking}
+            onChange={(e) => handleChange('hasStatusTracking', e.target.value)}
+          >
+            <option value="全部">全部</option>
+            <option value="has-tracking">有追踪记录</option>
+            <option value="no-tracking">暂无追踪</option>
+            <option value="has-damaged-record">曾记录损坏</option>
+            <option value="has-restored-record">曾记录修复</option>
           </select>
         </div>
 

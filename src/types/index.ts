@@ -56,6 +56,8 @@ export interface Filters {
   condition: string;
   eraStage: string;
   hasRestoration: string;
+  hasStatusTracking: string;
+  userStatus: string;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'sepia';
@@ -209,3 +211,33 @@ export interface OralArchivesContextType {
   hasArchive: (signboardId: string) => boolean;
   getArchivesForSignboards: (signboardIds: string[]) => OralArchive[];
 }
+
+export type ConditionStatus = 'well-preserved' | 'weathered' | 'damaged' | 'restored';
+
+export interface StatusRecord {
+  id: string;
+  signboardId: string;
+  condition: ConditionStatus;
+  date: string;
+  note?: string;
+  recordedAt: number;
+  updatedAt: number;
+}
+
+export interface StatusTrackingContextType {
+  records: StatusRecord[];
+  addRecord: (signboardId: string, data: Omit<StatusRecord, 'id' | 'signboardId' | 'recordedAt' | 'updatedAt'>) => StatusRecord;
+  updateRecord: (id: string, data: Partial<Omit<StatusRecord, 'id' | 'signboardId' | 'recordedAt'>>) => void;
+  deleteRecord: (id: string) => void;
+  getRecordsForSignboard: (signboardId: string) => StatusRecord[];
+  getLatestStatus: (signboardId: string) => ConditionStatus | null;
+  hasRecords: (signboardId: string) => boolean;
+  getStatusStats: (signboardIds: string[]) => Record<ConditionStatus, number>;
+}
+
+export const conditionStatusLabels: Record<ConditionStatus, { text: string; className: string; icon: string; color: string }> = {
+  'well-preserved': { text: '保存完好', className: 'status-good', icon: '✨', color: '#22c55e' },
+  'weathered': { text: '自然风化', className: 'status-weathered', icon: '🍂', color: '#f59e0b' },
+  'damaged': { text: '有所损坏', className: 'status-damaged', icon: '⚠️', color: '#ef4444' },
+  'restored': { text: '经过修复', className: 'status-restored', icon: '🏛️', color: '#3b82f6' }
+};

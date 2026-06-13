@@ -4,9 +4,12 @@ import { signboards } from '../data/signboards';
 import { useFavorites } from '../context/FavoritesContext';
 import { useOralArchives } from '../context/OralArchivesContext';
 import { useTheme } from '../context/ThemeContext';
+import { useStatusTracking } from '../context/StatusTrackingContext';
 import RestorationTimeline from '../components/RestorationTimeline';
+import StatusTracking from '../components/StatusTracking';
 import { getNeighborhoodRecommendations } from '../utils/recommendation';
-import type { OralArchive } from '../types';
+import type { OralArchive, ConditionStatus } from '../types';
+import { conditionStatusLabels } from '../types';
 import './SignboardDetail.css';
 
 const conditionLabels: Record<string, { text: string; className: string }> = {
@@ -22,6 +25,7 @@ const SignboardDetail: React.FC = () => {
   const { toggleFavorite, toggleCompare, addToCompare, maxCompare, isFavorite, isInCompare, compareList } = useFavorites();
   const { saveArchive, deleteArchive, getArchive } = useOralArchives();
   const { applyContentTheme, resetContentTheme } = useTheme();
+  const { getLatestStatus, hasRecords } = useStatusTracking();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
 
   const [isEditingArchive, setIsEditingArchive] = useState(false);
@@ -45,6 +49,16 @@ const SignboardDetail: React.FC = () => {
 
   const signboard = signboards.find(s => s.id === id);
   const existingArchive = id ? getArchive(id) : undefined;
+
+  const displayCondition = useMemo(() => {
+    if (!signboard) return 'well-preserved' as ConditionStatus;
+    const userStatus = id ? getLatestStatus(id) : null;
+    return userStatus || (signboard.condition as ConditionStatus);
+  }, [signboard, id, getLatestStatus]);
+
+  const hasUserStatusRecords = useMemo(() => {
+    return id ? hasRecords(id) : false;
+  }, [id, hasRecords]);
 
   useEffect(() => {
     if (signboard) {
@@ -151,8 +165,15 @@ const SignboardDetail: React.FC = () => {
           <div className="detail-header">
             <div className="detail-tags">
               <span className="detail-era-tag">{signboard.era}</span>
-              <span className={`detail-condition-tag condition-${conditionLabels[signboard.condition].className}`}>
-                {conditionLabels[signboard.condition].text}
+              <span
+                className={`detail-condition-tag condition-${conditionLabels[displayCondition].className}`}
+                style={{
+                  borderColor: conditionStatusLabels[displayCondition].color,
+                  color: conditionStatusLabels[displayCondition].color
+                }}
+              >
+                {conditionStatusLabels[displayCondition].icon} {conditionLabels[displayCondition].text}
+                {hasUserStatusRecords && <span className="user-status-badge">用户记录</span>}
               </span>
             </div>
             <h1 className="detail-title">{signboard.name}</h1>
@@ -439,6 +460,11 @@ const SignboardDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      <StatusTracking
+        signboardId={signboard.id}
+        signboardCondition={signboard.condition as ConditionStatus}
+      />
 
       <RestorationTimeline history={signboard.restorationHistory} />
 

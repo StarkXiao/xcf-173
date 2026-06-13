@@ -119,6 +119,17 @@
 .condition-damaged { background-color: #C62828; }
 .condition-restored { background-color: #1565C0; }
 
+.user-status-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
 .detail-title {
   font-size: 2.2rem;
   font-weight: 700;
