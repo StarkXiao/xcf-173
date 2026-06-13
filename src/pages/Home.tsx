@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
-import { hasEventInEraStage } from '../types';
+import { getEraStageByYear } from '../types';
 import { useCollections } from '../context/CollectionsContext';
 import Filter from '../components/Filter';
 import SearchBar, { type SearchQuery } from '../components/SearchBar';
@@ -68,7 +68,8 @@ const Home: React.FC = () => {
       if (filters.tag !== '全部' && !s.tags.includes(filters.tag)) return false;
 
       if (filters.eraStage !== '全部') {
-        if (!hasEventInEraStage(s, filters.eraStage)) return false;
+        const stage = getEraStageByYear(s.year);
+        if (!stage || stage.id !== filters.eraStage) return false;
       }
 
       if (filters.hasRestoration !== '全部') {

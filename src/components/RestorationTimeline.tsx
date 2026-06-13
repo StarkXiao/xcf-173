@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { RestorationEvent, Signboard } from '../types';
-import { eraStages, hasEventInEraStage, getEraStageByYear } from '../types';
+import { eraStages, getEraStageByYear } from '../types';
 import './RestorationTimeline.css';
 
 interface RestorationTimelineProps {
@@ -46,7 +46,10 @@ const RestorationTimeline: React.FC<RestorationTimelineProps> = ({
       <div className="era-stage-timeline">
         <div className="era-stage-track">
           {eraStages.map(stage => {
-            const stageSignboards = signboards.filter(s => hasEventInEraStage(s, stage.id));
+            const stageSignboards = signboards.filter(signboard => {
+              const stageInfo = getEraStageByYear(signboard.year);
+              return stageInfo && stageInfo.id === stage.id;
+            });
             const isSelected = selectedEraStage === stage.id;
 
             return (
