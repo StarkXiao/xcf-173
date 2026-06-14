@@ -10,7 +10,7 @@ const FontFamilyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getFontFamily, getSignboardsForFontFamily, getEraVariantsForFontFamily } = useFontEvolution();
-  const { toggleFontFamilyFavorite, isFontFamilyFavorite, addToCompare, compareList, maxCompare } = useFavorites();
+  const { toggleFavorite, addToCompare, compareList, maxCompare, isFavorite, isInCompare } = useFavorites();
   
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'signboards'>('overview');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
@@ -36,7 +36,7 @@ const FontFamilyDetail: React.FC = () => {
   };
 
   const handleCompareAll = () => {
-    const available = signboards.filter(s => !compareList.includes(s.id));
+    const available = signboards.filter(s => !isInCompare(s.id));
     const spaceLeft = maxCompare - compareList.length;
     
     if (spaceLeft <= 0) {
@@ -96,20 +96,17 @@ const FontFamilyDetail: React.FC = () => {
         </div>
         <div className="font-detail-actions">
           <button
-            className={`action-btn ${isFontFamilyFavorite(id || '') ? 'active' : ''}`}
+            className={`action-btn ${isFavorite(id || '') ? 'active' : ''}`}
             onClick={() => {
-              toggleFontFamilyFavorite(id || '');
-              showToastMsg(isFontFamilyFavorite(id || '') ? '已取消收藏' : '已收藏字体', 'success');
+              toggleFavorite(id || '');
+              showToastMsg(isFavorite(id || '') ? '已取消收藏' : '已收藏字体', 'success');
             }}
           >
-            {isFontFamilyFavorite(id || '') ? '❤️ 已收藏' : '🤍 收藏字体'}
+            {isFavorite(id || '') ? '❤️ 已收藏' : '🤍 收藏字体'}
           </button>
           <button className="action-btn primary" onClick={handleCompareAll}>
             ⚖️ 全部对比
           </button>
-          <Link to="/favorites" className="action-btn">
-            📋 查看收藏
-          </Link>
         </div>
       </div>
 

@@ -55,6 +55,10 @@ const Navbar: React.FC = () => {
             <span className="nav-icon">✍️</span>
             <span>字体流变</span>
           </NavLink>
+          <NavLink to="/city-memory" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">📜</span>
+            <span>城市记忆</span>
+          </NavLink>
           <NavLink to="/compare" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">⚖️</span>
             <span>对比分析</span>

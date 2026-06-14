@@ -374,3 +374,56 @@ export interface FontEvolutionContextType {
   filterFontFamilies: (filters: FontEvolutionFilters) => FontFamily[];
   sortFontFamilies: (families: FontFamily[], sortBy: string) => FontFamily[];
 }
+
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected' | 'published';
+
+export interface StoryInfo {
+  title: string;
+  content: string;
+  author?: string;
+  relationship?: string;
+  year?: number;
+  photos?: string[];
+}
+
+export interface SignboardSubmission {
+  id: string;
+  shopName: string;
+  location: string;
+  era: string;
+  year?: number;
+  description: string;
+  fontStyle?: string;
+  colors?: string[];
+  buildingType?: string;
+  photos: string[];
+  contributorName: string;
+  contactInfo?: string;
+  stories: StoryInfo[];
+  status: SubmissionStatus;
+  submitTime: number;
+  reviewTime?: number;
+  reviewerNote?: string;
+  signboardId?: string;
+  tags?: string[];
+}
+
+export interface CityMemoryContextType {
+  submissions: SignboardSubmission[];
+  submitClue: (data: Omit<SignboardSubmission, 'id' | 'status' | 'submitTime' | 'stories'>) => SignboardSubmission;
+  addStory: (submissionId: string, story: Omit<StoryInfo, 'id'>) => void;
+  updateSubmission: (id: string, updates: Partial<SignboardSubmission>) => void;
+  reviewSubmission: (id: string, status: 'approved' | 'rejected', note?: string) => void;
+  publishToCollection: (submissionId: string, collectionId: string, note?: string) => Signboard | null;
+  getSubmission: (id: string) => SignboardSubmission | undefined;
+  getSubmissionsByStatus: (status: SubmissionStatus) => SignboardSubmission[];
+  getSubmissionsByContributor: (name: string) => SignboardSubmission[];
+  deleteSubmission: (id: string) => void;
+}
+
+export const submissionStatusLabels: Record<SubmissionStatus, { text: string; className: string; icon: string; color: string }> = {
+  'pending': { text: '待审核', className: 'status-pending', icon: '⏳', color: '#f59e0b' },
+  'approved': { text: '已通过', className: 'status-approved', icon: '✅', color: '#22c55e' },
+  'rejected': { text: '已拒绝', className: 'status-rejected', icon: '❌', color: '#ef4444' },
+  'published': { text: '已入册', className: 'status-published', icon: '📖', color: '#3b82f6' }
+};
