@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type {
   ResearchNote,
@@ -10,6 +10,7 @@ import type {
   ConditionStatus,
   FavoriteResearchStats
 } from '../types';
+import { useCRUD, useFilterState } from '../hooks';
 
 const ResearchLabContext = createContext<ResearchLabContextType | undefined>(undefined);
 
@@ -36,14 +37,6 @@ const defaultFilter: SampleFilterCriteria = {
   onlyInCollections: []
 };
 
-const migrateNotes = (rawNotes: any[]): ResearchNote[] => {
-  return rawNotes.map(note => ({
-    relatedCollectionIds: [],
-    source: 'manual' as const,
-    ...note
-  }));
-};
-
 const migrateFilter = (raw: any): SampleFilterCriteria => {
   return {
     onlyFavorites: false,
@@ -53,262 +46,277 @@ const migrateFilter = (raw: any): SampleFilterCriteria => {
 };
 
 export const ResearchLabProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [notes, setNotes] = useState<ResearchNote[]>(() => {
-    const saved = localStorage.getItem(NOTES_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return migrateNotes(parsed);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  const [colorGroups, setColorGroups] = useState<ColorComparisonGroup[]>(() => {
-    const saved = localStorage.getItem(COLOR_GROUPS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [eraSnapshots, setEraSnapshots] = useState<EraAnalysisSnapshot[]>(() => {
-    const saved = localStorage.getItem(ERA_SNAPSHOTS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeFilter, setActiveFilterState] = useState<SampleFilterCriteria>(() => {
-    const saved = localStorage.getItem(FILTER_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return migrateFilter(parsed);
-      } catch {
-        return defaultFilter;
-      }
-    }
-    return defaultFilter;
-  });
-
-  useEffect(() => {
-    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
-  }, [notes]);
-
-  useEffect(() => {
-    localStorage.setItem(COLOR_GROUPS_KEY, JSON.stringify(colorGroups));
-  }, [colorGroups]);
-
-  useEffect(() => {
-    localStorage.setItem(ERA_SNAPSHOTS_KEY, JSON.stringify(eraSnapshots));
-  }, [eraSnapshots]);
-
-  useEffect(() => {
-    localStorage.setItem(FILTER_KEY, JSON.stringify(activeFilter));
-  }, [activeFilter]);
-
-  const addNote = useCallback((data: Omit<ResearchNote, 'id' | 'createdAt' | 'updatedAt'>): ResearchNote => {
-    const now = Date.now();
-    const defaults: Partial<ResearchNote> = {
+  const notesCRUD = useCRUD<ResearchNote>({
+    localStorageKey: NOTES_KEY,
+    generateId: generateNoteId,
+    defaults: {
       relatedCollectionIds: [],
       source: 'manual'
-    };
-    const newNote: ResearchNote = {
-      ...defaults,
-      ...data,
-      id: generateNoteId(),
-      createdAt: now,
-      updatedAt: now
-    } as ResearchNote;
-    setNotes(prev => [newNote, ...prev]);
-    return newNote;
-  }, []);
+    }
+  });
 
-  const updateNote = useCallback((id: string, updates: Partial<Omit<ResearchNote, 'id' | 'createdAt'>>) => {
-    setNotes(prev => prev.map(note =>
-      note.id === id ? { ...note, ...updates, updatedAt: Date.now() } : note
-    ));
-  }, []);
+  const colorGroupsCRUD = useCRUD<ColorComparisonGroup>({
+    localStorageKey: COLOR_GROUPS_KEY,
+    generateId: generateGroupId
+  });
 
-  const deleteNote = useCallback((id: string) => {
-    setNotes(prev => prev.filter(note => note.id !== id));
-  }, []);
+  const eraSnapshotsCRUD = useCRUD<EraAnalysisSnapshot>({
+    localStorageKey: ERA_SNAPSHOTS_KEY,
+    generateId: generateSnapshotId
+  });
 
-  const getNote = useCallback((id: string): ResearchNote | undefined => {
-    return notes.find(n => n.id === id);
-  }, [notes]);
+  const {
+    filter: activeFilter,
+    setFilter: setActiveFilter,
+    resetFilter: resetActiveFilter,
+    toggleArrayFilter,
+    activeFilterCount
+  } = useFilterState<SampleFilterCriteria>({
+    localStorageKey: FILTER_KEY,
+    defaultFilter,
+    migrate: migrateFilter
+  });
 
-  const getNotesByCategory = useCallback((category: ResearchNote['category']): ResearchNote[] => {
-    return notes.filter(n => n.category === category);
-  }, [notes]);
+  const notes = useMemo(() => {
+    const raw = notesCRUD.items;
+    return Array.isArray(raw) ? raw : [];
+  }, [notesCRUD.items]);
 
-  const getNotesForSignboard = useCallback((signboardId: string): ResearchNote[] => {
-    return notes.filter(n => n.signboardId === signboardId || n.relatedSignboardIds.includes(signboardId));
-  }, [notes]);
+  const colorGroups = useMemo(() => {
+    const raw = colorGroupsCRUD.items;
+    return Array.isArray(raw) ? raw : [];
+  }, [colorGroupsCRUD.items]);
 
-  const getNotesForCollection = useCallback((collectionId: string): ResearchNote[] => {
-    return notes.filter(n => n.relatedCollectionIds.includes(collectionId));
-  }, [notes]);
+  const eraSnapshots = useMemo(() => {
+    const raw = eraSnapshotsCRUD.items;
+    return Array.isArray(raw) ? raw : [];
+  }, [eraSnapshotsCRUD.items]);
 
-  const getNotesForCollections = useCallback((collectionIds: string[]): ResearchNote[] => {
-    const set = new Set(collectionIds);
-    return notes.filter(n => n.relatedCollectionIds.some(id => set.has(id)));
-  }, [notes]);
+  const addNote = useCallback(
+    (data: Omit<ResearchNote, 'id' | 'createdAt' | 'updatedAt'>): ResearchNote => {
+      return notesCRUD.add(data);
+    },
+    [notesCRUD]
+  );
 
-  const getNotesForFavorites = useCallback((favoriteIds: string[]): ResearchNote[] => {
-    const favSet = new Set(favoriteIds);
-    return notes.filter(n =>
-      (n.signboardId && favSet.has(n.signboardId)) ||
-      n.relatedSignboardIds.some(id => favSet.has(id)) ||
-      favSet.size === 0
-    );
-  }, [notes]);
+  const updateNote = useCallback(
+    (id: string, updates: Partial<Omit<ResearchNote, 'id' | 'createdAt'>>) => {
+      notesCRUD.update(id, updates);
+    },
+    [notesCRUD]
+  );
 
-  const getFavoriteResearchStats = useCallback((
-    _allSignboards: Signboard[],
-    favoriteIds: string[],
-    collections: { id: string; items: { signboardId: string }[] }[]
-  ): FavoriteResearchStats => {
-    const notesPerFavorite: Record<string, number> = {};
-    const notesPerCollection: Record<string, number> = {};
+  const deleteNote = useCallback(
+    (id: string) => {
+      notesCRUD.remove(id);
+    },
+    [notesCRUD]
+  );
 
-    favoriteIds.forEach(fid => {
-      const count = notes.filter(n =>
-        (n.signboardId === fid) || n.relatedSignboardIds.includes(fid)
-      ).length;
-      if (count > 0) notesPerFavorite[fid] = count;
-    });
+  const getNote = useCallback(
+    (id: string): ResearchNote | undefined => {
+      return notesCRUD.getById(id);
+    },
+    [notesCRUD]
+  );
 
-    collections.forEach(col => {
-      const colSignboardIds = new Set(col.items.map(i => i.signboardId));
-      const count = notes.filter(n =>
-        n.relatedCollectionIds.includes(col.id) ||
-        (n.signboardId && colSignboardIds.has(n.signboardId)) ||
-        n.relatedSignboardIds.some(id => colSignboardIds.has(id))
-      ).length;
-      if (count > 0) notesPerCollection[col.id] = count;
-    });
+  const getNotesByCategory = useCallback(
+    (category: ResearchNote['category']): ResearchNote[] => {
+      return notesCRUD.getByField('category', category);
+    },
+    [notesCRUD]
+  );
 
-    const totalFavoritesWithNotes = Object.keys(notesPerFavorite).length;
-    const totalCollectionsWithNotes = Object.keys(notesPerCollection).length;
+  const getNotesForSignboard = useCallback(
+    (signboardId: string): ResearchNote[] => {
+      return notes.filter(
+        n => n.signboardId === signboardId || n.relatedSignboardIds.includes(signboardId)
+      );
+    },
+    [notes]
+  );
 
-    return {
-      totalFavoritesWithNotes,
-      totalCollectionsWithNotes,
-      notesPerFavorite,
-      notesPerCollection
-    };
-  }, [notes]);
+  const getNotesForCollection = useCallback(
+    (collectionId: string): ResearchNote[] => {
+      return notes.filter(n => n.relatedCollectionIds.includes(collectionId));
+    },
+    [notes]
+  );
 
-  const addColorGroup = useCallback((data: Omit<ColorComparisonGroup, 'id' | 'createdAt'>): ColorComparisonGroup => {
-    const newGroup: ColorComparisonGroup = {
-      ...data,
-      id: generateGroupId(),
-      createdAt: Date.now()
-    };
-    setColorGroups(prev => [newGroup, ...prev]);
-    return newGroup;
-  }, []);
+  const getNotesForCollections = useCallback(
+    (collectionIds: string[]): ResearchNote[] => {
+      const set = new Set(collectionIds);
+      return notes.filter(n => n.relatedCollectionIds.some(id => set.has(id)));
+    },
+    [notes]
+  );
 
-  const updateColorGroup = useCallback((id: string, updates: Partial<Omit<ColorComparisonGroup, 'id' | 'createdAt'>>) => {
-    setColorGroups(prev => prev.map(group =>
-      group.id === id ? { ...group, ...updates } : group
-    ));
-  }, []);
-
-  const deleteColorGroup = useCallback((id: string) => {
-    setColorGroups(prev => prev.filter(group => group.id !== id));
-  }, []);
-
-  const toggleSignboardInColorGroup = useCallback((groupId: string, signboardId: string) => {
-    setColorGroups(prev => prev.map(group => {
-      if (group.id !== groupId) return group;
-      const has = group.signboardIds.includes(signboardId);
-      return {
-        ...group,
-        signboardIds: has
-          ? group.signboardIds.filter(id => id !== signboardId)
-          : [...group.signboardIds, signboardId]
-      };
-    }));
-  }, []);
-
-  const addEraSnapshot = useCallback((data: Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>): EraAnalysisSnapshot => {
-    const newSnapshot: EraAnalysisSnapshot = {
-      ...data,
-      id: generateSnapshotId(),
-      createdAt: Date.now()
-    };
-    setEraSnapshots(prev => [newSnapshot, ...prev]);
-    return newSnapshot;
-  }, []);
-
-  const updateEraSnapshot = useCallback((id: string, updates: Partial<Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>>) => {
-    setEraSnapshots(prev => prev.map(snap =>
-      snap.id === id ? { ...snap, ...updates } : snap
-    ));
-  }, []);
-
-  const deleteEraSnapshot = useCallback((id: string) => {
-    setEraSnapshots(prev => prev.filter(snap => snap.id !== id));
-  }, []);
-
-  const setActiveFilter = useCallback((filter: Partial<SampleFilterCriteria>) => {
-    setActiveFilterState(prev => ({ ...prev, ...filter }));
-  }, []);
-
-  const resetActiveFilter = useCallback(() => {
-    setActiveFilterState(defaultFilter);
-  }, []);
-
-  const filterSignboards = useCallback((
-    signboards: Signboard[],
-    criteria: SampleFilterCriteria,
-    favoriteIds?: string[],
-    collectionMap?: Map<string, string[]>
-  ): Signboard[] => {
-    let result = signboards.filter(sb => {
-      if (criteria.yearRange) {
-        const [minY, maxY] = criteria.yearRange;
-        if (sb.year < minY || sb.year > maxY) return false;
-      }
-      if (criteria.eras.length > 0 && !criteria.eras.includes(sb.era)) return false;
-      if (criteria.fontStyles.length > 0 && !criteria.fontStyles.includes(sb.fontStyle)) return false;
-      if (criteria.conditions.length > 0 && !criteria.conditions.includes(sb.condition as ConditionStatus)) return false;
-      if (criteria.colors.length > 0) {
-        const hasColor = criteria.colors.some(c => sb.colors.includes(c));
-        if (!hasColor) return false;
-      }
-      if (criteria.tags.length > 0) {
-        const hasTag = criteria.tags.some(t => sb.tags.includes(t));
-        if (!hasTag) return false;
-      }
-      if (criteria.locations.length > 0) {
-        const matchLocation = criteria.locations.some(loc => sb.location.includes(loc));
-        if (!matchLocation) return false;
-      }
-      if (criteria.hasRestoration !== null) {
-        const hasRest = sb.restorationHistory.length > 1;
-        if (criteria.hasRestoration !== hasRest) return false;
-      }
-      if (criteria.buildingTypes.length > 0 && !criteria.buildingTypes.includes(sb.buildingType)) return false;
-      return true;
-    });
-
-    if (criteria.onlyFavorites && favoriteIds) {
+  const getNotesForFavorites = useCallback(
+    (favoriteIds: string[]): ResearchNote[] => {
       const favSet = new Set(favoriteIds);
-      result = result.filter(sb => favSet.has(sb.id));
-    }
+      return notes.filter(
+        n =>
+          (n.signboardId && favSet.has(n.signboardId)) ||
+          n.relatedSignboardIds.some(id => favSet.has(id)) ||
+          favSet.size === 0
+      );
+    },
+    [notes]
+  );
 
-    if (criteria.onlyInCollections.length > 0 && collectionMap) {
-      const collectionSignboardIds = new Set<string>();
-      criteria.onlyInCollections.forEach(cid => {
-        const ids = collectionMap.get(cid);
-        if (ids) ids.forEach(id => collectionSignboardIds.add(id));
+  const getFavoriteResearchStats = useCallback(
+    (
+      _allSignboards: Signboard[],
+      favoriteIds: string[],
+      collections: { id: string; items: { signboardId: string }[] }[]
+    ): FavoriteResearchStats => {
+      const notesPerFavorite: Record<string, number> = {};
+      const notesPerCollection: Record<string, number> = {};
+
+      favoriteIds.forEach(fid => {
+        const count = notes.filter(
+          n => n.signboardId === fid || n.relatedSignboardIds.includes(fid)
+        ).length;
+        if (count > 0) notesPerFavorite[fid] = count;
       });
-      result = result.filter(sb => collectionSignboardIds.has(sb.id));
-    }
 
-    return result;
-  }, []);
+      collections.forEach(col => {
+        const colSignboardIds = new Set(col.items.map(i => i.signboardId));
+        const count = notes.filter(
+          n =>
+            n.relatedCollectionIds.includes(col.id) ||
+            (n.signboardId && colSignboardIds.has(n.signboardId)) ||
+            n.relatedSignboardIds.some(id => colSignboardIds.has(id))
+        ).length;
+        if (count > 0) notesPerCollection[col.id] = count;
+      });
+
+      const totalFavoritesWithNotes = Object.keys(notesPerFavorite).length;
+      const totalCollectionsWithNotes = Object.keys(notesPerCollection).length;
+
+      return {
+        totalFavoritesWithNotes,
+        totalCollectionsWithNotes,
+        notesPerFavorite,
+        notesPerCollection
+      };
+    },
+    [notes]
+  );
+
+  const addColorGroup = useCallback(
+    (data: Omit<ColorComparisonGroup, 'id' | 'createdAt'>): ColorComparisonGroup => {
+      return colorGroupsCRUD.add(data);
+    },
+    [colorGroupsCRUD]
+  );
+
+  const updateColorGroup = useCallback(
+    (id: string, updates: Partial<Omit<ColorComparisonGroup, 'id' | 'createdAt'>>) => {
+      colorGroupsCRUD.update(id, updates);
+    },
+    [colorGroupsCRUD]
+  );
+
+  const deleteColorGroup = useCallback(
+    (id: string) => {
+      colorGroupsCRUD.remove(id);
+    },
+    [colorGroupsCRUD]
+  );
+
+  const toggleSignboardInColorGroup = useCallback(
+    (groupId: string, signboardId: string) => {
+      colorGroupsCRUD.setItems(prev =>
+        prev.map(group => {
+          if (group.id !== groupId) return group;
+          const has = group.signboardIds.includes(signboardId);
+          return {
+            ...group,
+            signboardIds: has
+              ? group.signboardIds.filter(id => id !== signboardId)
+              : [...group.signboardIds, signboardId]
+          };
+        })
+      );
+    },
+    [colorGroupsCRUD]
+  );
+
+  const addEraSnapshot = useCallback(
+    (data: Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>): EraAnalysisSnapshot => {
+      return eraSnapshotsCRUD.add(data);
+    },
+    [eraSnapshotsCRUD]
+  );
+
+  const updateEraSnapshot = useCallback(
+    (id: string, updates: Partial<Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>>) => {
+      eraSnapshotsCRUD.update(id, updates);
+    },
+    [eraSnapshotsCRUD]
+  );
+
+  const deleteEraSnapshot = useCallback(
+    (id: string) => {
+      eraSnapshotsCRUD.remove(id);
+    },
+    [eraSnapshotsCRUD]
+  );
+
+  const filterSignboards = useCallback(
+    (
+      signboards: Signboard[],
+      criteria: SampleFilterCriteria,
+      favoriteIds?: string[],
+      collectionMap?: Map<string, string[]>
+    ): Signboard[] => {
+      let result = signboards.filter(sb => {
+        if (criteria.yearRange) {
+          const [minY, maxY] = criteria.yearRange;
+          if (sb.year < minY || sb.year > maxY) return false;
+        }
+        if (criteria.eras.length > 0 && !criteria.eras.includes(sb.era)) return false;
+        if (criteria.fontStyles.length > 0 && !criteria.fontStyles.includes(sb.fontStyle)) return false;
+        if (criteria.conditions.length > 0 && !criteria.conditions.includes(sb.condition as ConditionStatus)) return false;
+        if (criteria.colors.length > 0) {
+          const hasColor = criteria.colors.some(c => sb.colors.includes(c));
+          if (!hasColor) return false;
+        }
+        if (criteria.tags.length > 0) {
+          const hasTag = criteria.tags.some(t => sb.tags.includes(t));
+          if (!hasTag) return false;
+        }
+        if (criteria.locations.length > 0) {
+          const matchLocation = criteria.locations.some(loc => sb.location.includes(loc));
+          if (!matchLocation) return false;
+        }
+        if (criteria.hasRestoration !== null) {
+          const hasRest = sb.restorationHistory.length > 1;
+          if (criteria.hasRestoration !== hasRest) return false;
+        }
+        if (criteria.buildingTypes.length > 0 && !criteria.buildingTypes.includes(sb.buildingType)) return false;
+        return true;
+      });
+
+      if (criteria.onlyFavorites && favoriteIds) {
+        const favSet = new Set(favoriteIds);
+        result = result.filter(sb => favSet.has(sb.id));
+      }
+
+      if (criteria.onlyInCollections.length > 0 && collectionMap) {
+        const collectionSignboardIds = new Set<string>();
+        criteria.onlyInCollections.forEach(cid => {
+          const ids = collectionMap.get(cid);
+          if (ids) ids.forEach(id => collectionSignboardIds.add(id));
+        });
+        result = result.filter(sb => collectionSignboardIds.has(sb.id));
+      }
+
+      return result;
+    },
+    []
+  );
 
   const value = useMemo<ResearchLabContextType>(() => ({
     notes,
@@ -334,8 +342,10 @@ export const ResearchLabProvider: React.FC<{ children: ReactNode }> = ({ childre
     deleteEraSnapshot,
     setActiveFilter,
     resetActiveFilter,
-    filterSignboards
-  }), [
+    filterSignboards,
+    toggleArrayFilter,
+    activeFilterCount
+  } as ResearchLabContextType), [
     notes,
     colorGroups,
     eraSnapshots,
@@ -359,7 +369,9 @@ export const ResearchLabProvider: React.FC<{ children: ReactNode }> = ({ childre
     deleteEraSnapshot,
     setActiveFilter,
     resetActiveFilter,
-    filterSignboards
+    filterSignboards,
+    toggleArrayFilter,
+    activeFilterCount
   ]);
 
   return (

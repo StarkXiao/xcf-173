@@ -6,6 +6,12 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import SignboardCard from '../components/SignboardCard';
 import {
+  PageHeader,
+  TabNavigation,
+  EmptyState
+} from '../components/common';
+import type { StatChip, ShortcutButton, TabConfig } from '../components/common';
+import {
   eraStages,
   getEraStageByYear,
   conditionStatusLabels
@@ -22,7 +28,7 @@ type TabKey = 'era' | 'color' | 'screen' | 'notes';
 type NoteCategory = ResearchNote['category'];
 type NoteScope = 'all' | 'favorites' | 'collections';
 
-const tabConfig: { key: TabKey; label: string; icon: string; desc: string }[] = [
+const tabConfig: TabConfig<TabKey>[] = [
   { key: 'era', label: '年代分析', icon: '🕰️', desc: '跨时代演变研究' },
   { key: 'color', label: '色彩对照', icon: '🎨', desc: '配色方案比对' },
   { key: 'screen', label: '样本筛查', icon: '🔬', desc: '多维度样本筛选' },
@@ -68,7 +74,9 @@ const SignboardResearchLab: React.FC = () => {
     resetActiveFilter,
     filterSignboards,
     getNotesForSignboard,
-    getFavoriteResearchStats
+    getFavoriteResearchStats,
+    toggleArrayFilter,
+    activeFilterCount
   } = useResearchLab();
   const { favorites, isFavorite } = useFavorites();
   const { collections } = useCollections();
@@ -149,6 +157,87 @@ const SignboardResearchLab: React.FC = () => {
     getFavoriteResearchStats(signboards, favorites, collections),
     [getFavoriteResearchStats, signboards, favorites, collections]);
 
+  const pageStats = useMemo<StatChip[]>(() => [
+    {
+      icon: '📊',
+      value: signboards.length,
+      label: '样本总数'
+    },
+    {
+      icon: '❤️',
+      value: favorites.length,
+      label: (
+        <>
+          收藏 · <b style={{ color: '#dc2626' }}>{researchStats.totalFavoritesWithNotes}</b> 有笔记
+        </>
+      ),
+      highlight: true
+    },
+    {
+      icon: '📚',
+      value: collections.length,
+      label: (
+        <>
+          藏册 · <b style={{ color: '#0891b2' }}>{researchStats.totalCollectionsWithNotes}</b> 有研究
+        </>
+      ),
+      highlight: true
+    },
+    {
+      icon: '📓',
+      value: notes.length,
+      label: '研究笔记'
+    }
+  ], [signboards.length, favorites.length, collections.length, notes.length, researchStats]);
+
+  const pageShortcuts = useMemo<ShortcutButton[]>(() => {
+    const shortcuts: ShortcutButton[] = [
+      {
+        icon: '✍️',
+        label: '新建笔记',
+        onClick: () => openNewNote(),
+        variant: 'primary'
+      },
+      {
+        icon: '📖',
+        label: '去藏册页看看',
+        onClick: () => navigate('/favorites'),
+        variant: 'outline'
+      }
+    ];
+
+    if (favorites.length > 0) {
+      shortcuts.splice(1, 0, {
+        icon: '❤️',
+        label: '围绕收藏写笔记',
+        onClick: () => openNewNote('综合研究', {
+          source: 'favorite',
+          signboardIds: favorites,
+          title: '我的收藏招牌综合研究',
+          content: `## 收藏研究总览\n\n共收藏 **${favorites.length}** 块招牌：\n\n${favorites.map(id => {
+            const sb = signboards.find(s => s.id === id);
+            return sb ? `- ${sb.name}（${sb.era}·${sb.year}·${sb.location.split('区')[0]}区）` : '';
+          }).filter(Boolean).join('\n')}\n\n---\n\n## 跨招牌分析\n\n`
+        }),
+        variant: 'primary'
+      });
+    }
+
+    return shortcuts;
+  }, [favorites, signboards, navigate]);
+
+  const collectionShortcut = useMemo(() => {
+    if (collections.length === 0) return undefined;
+    return {
+      placeholder: '📚 选择藏册做研究...',
+      options: collections.map(col => ({
+        value: col.id,
+        label: `${col.name}（${col.items.length}块）`
+      })),
+      onChange: (collectionId: string) => openNoteForCollection(collectionId)
+    };
+  }, [collections]);
+
   useEffect(() => {
     const state = location.state;
     if (!state) return;
@@ -182,22 +271,6 @@ const SignboardResearchLab: React.FC = () => {
   const filteredSignboards = useMemo(() =>
     filterSignboards(signboards, activeFilter, favorites, collectionSignboardMap),
     [signboards, activeFilter, favorites, collectionSignboardMap, filterSignboards]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (activeFilter.yearRange) count++;
-    if (activeFilter.eras.length) count++;
-    if (activeFilter.fontStyles.length) count++;
-    if (activeFilter.conditions.length) count++;
-    if (activeFilter.colors.length) count++;
-    if (activeFilter.tags.length) count++;
-    if (activeFilter.locations.length) count++;
-    if (activeFilter.hasRestoration !== null) count++;
-    if (activeFilter.buildingTypes.length) count++;
-    if (activeFilter.onlyFavorites) count++;
-    if (activeFilter.onlyInCollections.length) count++;
-    return count;
-  }, [activeFilter]);
 
   const activeColorGroup = useMemo(() =>
     colorGroups.find(g => g.id === activeColorGroupId) || null,
@@ -405,20 +478,8 @@ const SignboardResearchLab: React.FC = () => {
     });
   };
 
-  const toggleArrayFilter = (field: 'eras' | 'fontStyles' | 'conditions' | 'colors' | 'tags' | 'locations' | 'buildingTypes', value: string) => {
-    const current = activeFilter[field] as string[];
-    const updated = current.includes(value)
-      ? current.filter(v => v !== value)
-      : [...current, value];
-    setActiveFilter({ [field]: updated } as any);
-  };
-
   const toggleCollectionFilter = (collectionId: string) => {
-    const current = activeFilter.onlyInCollections;
-    const updated = current.includes(collectionId)
-      ? current.filter(v => v !== collectionId)
-      : [...current, collectionId];
-    setActiveFilter({ onlyInCollections: updated });
+    toggleArrayFilter('onlyInCollections', collectionId);
   };
 
   const FavoriteBadge = ({ signboardId, compact = false }: { signboardId: string; compact?: boolean }) => {
@@ -463,107 +524,20 @@ const SignboardResearchLab: React.FC = () => {
 
   return (
     <div className="research-lab-page animate-fade-in">
-      <div className="lab-page-header">
-        <div className="lab-header-inner">
-          <div className="lab-title-wrap">
-            <div className="lab-icon-badge">🔬</div>
-            <div>
-              <h1 className="lab-page-title">老店招牌研究室</h1>
-              <p className="lab-page-subtitle">
-                围绕收藏与藏册形成独立研究闭环 · 从招牌到笔记的全链路
-              </p>
-            </div>
-          </div>
-          <div className="lab-stats-bar">
-            <div className="lab-stat-chip">
-              <span className="stat-icon">📊</span>
-              <span className="stat-num">{signboards.length}</span>
-              <span className="stat-label">样本总数</span>
-            </div>
-            <div className="lab-stat-chip highlight">
-              <span className="stat-icon">❤️</span>
-              <span className="stat-num">{favorites.length}</span>
-              <span className="stat-label">
-                收藏 · <b style={{ color: '#dc2626' }}>{researchStats.totalFavoritesWithNotes}</b> 有笔记
-              </span>
-            </div>
-            <div className="lab-stat-chip highlight">
-              <span className="stat-icon">📚</span>
-              <span className="stat-num">{collections.length}</span>
-              <span className="stat-label">
-                藏册 · <b style={{ color: '#0891b2' }}>{researchStats.totalCollectionsWithNotes}</b> 有研究
-              </span>
-            </div>
-            <div className="lab-stat-chip">
-              <span className="stat-icon">📓</span>
-              <span className="stat-num">{notes.length}</span>
-              <span className="stat-label">研究笔记</span>
-            </div>
-          </div>
-        </div>
-        <div className="lab-shortcuts">
-          <button className="shortcut-btn" onClick={() => openNewNote()}>
-            <span>✍️</span> 新建笔记
-          </button>
-          {favorites.length > 0 && (
-            <button
-              className="shortcut-btn favorite"
-              onClick={() => openNewNote('综合研究', {
-                source: 'favorite',
-                signboardIds: favorites,
-                title: '我的收藏招牌综合研究',
-                content: `## 收藏研究总览\n\n共收藏 **${favorites.length}** 块招牌：\n\n${favorites.map(id => {
-                  const sb = signboards.find(s => s.id === id);
-                  return sb ? `- ${sb.name}（${sb.era}·${sb.year}·${sb.location.split('区')[0]}区）` : '';
-                }).filter(Boolean).join('\n')}\n\n---\n\n## 跨招牌分析\n\n`
-              })}
-            >
-              <span>❤️</span> 围绕收藏写笔记
-            </button>
-          )}
-          {collections.length > 0 && (
-            <select
-              className="shortcut-select"
-              value=""
-              onChange={(e) => {
-                if (e.target.value) {
-                  openNoteForCollection(e.target.value);
-                  e.target.value = '';
-                }
-              }}
-            >
-              <option value="">📚 选择藏册做研究...</option>
-              {collections.map(col => (
-                <option key={col.id} value={col.id}>
-                  {col.name}（{col.items.length}块）
-                </option>
-              ))}
-            </select>
-          )}
-          <button
-            className="shortcut-btn outline"
-            onClick={() => navigate('/favorites')}
-          >
-            <span>📖</span> 去藏册页看看
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        icon="🔬"
+        title="老店招牌研究室"
+        subtitle="围绕收藏与藏册形成独立研究闭环 · 从招牌到笔记的全链路"
+        stats={pageStats}
+        shortcuts={pageShortcuts}
+        shortcutSelect={collectionShortcut}
+      />
 
-      <div className="lab-tabs-nav">
-        {tabConfig.map(tab => (
-          <button
-            key={tab.key}
-            className={`lab-tab-btn ${activeTab === tab.key ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            <span className="tab-icon">{tab.icon}</span>
-            <div className="tab-text">
-              <span className="tab-label">{tab.label}</span>
-              <span className="tab-desc">{tab.desc}</span>
-            </div>
-          </button>
-        ))}
-      </div>
+      <TabNavigation
+        tabs={tabConfig}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       <div className="lab-tab-content">
         {activeTab === 'era' && (
@@ -747,12 +721,13 @@ const SignboardResearchLab: React.FC = () => {
             </div>
 
             {colorGroups.length === 0 ? (
-              <div className="empty-lab-state">
-                <div className="empty-icon">🎨</div>
-                <h3>还没有色彩对照组</h3>
-                <p>创建色彩对照组，把收藏的招牌放在一起比对配色方案</p>
-                <button className="go-btn" onClick={openNewColorGroup}>创建第一个对照组</button>
-              </div>
+              <EmptyState
+                icon="🎨"
+                title="还没有色彩对照组"
+                description="创建色彩对照组，把收藏的招牌放在一起比对配色方案"
+                actionLabel="创建第一个对照组"
+                onAction={openNewColorGroup}
+              />
             ) : (
               <div className="color-groups-layout">
                 <div className="color-groups-sidebar">
@@ -814,10 +789,12 @@ const SignboardResearchLab: React.FC = () => {
                       </div>
 
                       {activeColorGroupSignboards.length === 0 ? (
-                        <div className="empty-lab-state small">
-                          <div className="empty-icon">🖼️</div>
-                          <p>从下方候选招牌中点击 ➕ 添加到对照组（优先显示收藏招牌）</p>
-                        </div>
+                        <EmptyState
+                          icon="🖼️"
+                          title=""
+                          description="从下方候选招牌中点击 ➕ 添加到对照组（优先显示收藏招牌）"
+                          small
+                        />
                       ) : (
                         <>
                           <div className="color-compare-grid">
@@ -941,10 +918,11 @@ const SignboardResearchLab: React.FC = () => {
                       </div>
                     </>
                   ) : (
-                    <div className="empty-lab-state">
-                      <div className="empty-icon">👈</div>
-                      <p>请从左侧选择一个色彩对照组，或新建一个</p>
-                    </div>
+                    <EmptyState
+                      icon="👈"
+                      title=""
+                      description="请从左侧选择一个色彩对照组，或新建一个"
+                    />
                   )}
                 </div>
               </div>

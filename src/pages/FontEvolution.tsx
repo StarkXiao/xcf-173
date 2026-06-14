@@ -1,47 +1,87 @@
 import React, { useMemo, useState } from 'react';
 import { useFontEvolution } from '../context/FontEvolutionContext';
 import FontFamilyCard from '../components/FontFamilyCard';
+import {
+  PageHeader,
+  ViewToggle,
+  FilterSection,
+  FilterGroup,
+  FilterGrid,
+  FilterFooter,
+  FormSelect,
+  EmptyState,
+  StatsGrid,
+  ResetButton
+} from '../components/common';
+import type { StatChip, ViewOption } from '../components/common';
 import { fontDifficulties, fontStyleCategories, fontSortOptions } from '../data/fontFamilies';
-import type { FontEvolutionFilters } from '../types';
+import type { FontFamily } from '../types';
 import './FontEvolution.css';
 
+const eraOptions = [
+  { value: '全部', label: '全部年代' },
+  { value: '先秦', label: '先秦' },
+  { value: '汉代', label: '汉代' },
+  { value: '唐代', label: '唐代' },
+  { value: '宋代', label: '宋代' },
+  { value: '清代', label: '清代' },
+  { value: '民国', label: '民国' },
+  { value: '现代', label: '现代' }
+];
+
+const viewOptions: ViewOption[] = [
+  { key: 'grid', label: '网格视图', icon: '▦' },
+  { key: 'timeline', label: '时间线视图', icon: '📊' }
+];
+
 const FontEvolution: React.FC = () => {
-  const { fontFamilies, filterFontFamilies, sortFontFamilies, getSignboardsForFontFamily } = useFontEvolution();
-  
-  const [filters, setFilters] = useState<FontEvolutionFilters>({
-    style: '全部',
-    era: '全部',
-    difficulty: '全部',
-    sortBy: 'historicalSignificance'
-  });
+  const {
+    fontFamilies,
+    filters,
+    resetFilters,
+    handleFilterChange,
+    filterFontFamilies,
+    sortFontFamilies,
+    getSignboardsForFontFamily
+  } = useFontEvolution();
 
   const [activeView, setActiveView] = useState<'grid' | 'timeline'>('grid');
 
   const filteredFamilies = useMemo(() => {
-    const filtered = filterFontFamilies(filters);
+    const filtered = filterFontFamilies();
     return sortFontFamilies(filtered, filters.sortBy);
   }, [filters, filterFontFamilies, sortFontFamilies]);
-
-  const handleFilterChange = (key: keyof FontEvolutionFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      style: '全部',
-      era: '全部',
-      difficulty: '全部',
-      sortBy: 'historicalSignificance'
-    });
-  };
 
   const totalSignboards = useMemo(() => {
     return fontFamilies.reduce((sum, f) => sum + f.signboardIds.length, 0);
   }, [fontFamilies]);
 
+  const pageStats = useMemo<StatChip[]>(() => [
+    {
+      icon: '📜',
+      value: fontFamilies.length,
+      label: '字体种类'
+    },
+    {
+      icon: '🪧',
+      value: totalSignboards,
+      label: '招牌样本'
+    },
+    {
+      icon: '📅',
+      value: new Set(fontFamilies.flatMap(f => f.eraVariants.map(v => v.era))).size,
+      label: '历史时期'
+    },
+    {
+      icon: '🏆',
+      value: fontFamilies.filter(f => f.difficulty === 'advanced').length,
+      label: '高难度字体'
+    }
+  ], [fontFamilies, totalSignboards]);
+
   const timelineData = useMemo(() => {
-    const allEras = new Map<string, typeof fontFamilies>();
-    
+    const allEras = new Map<string, FontFamily[]>();
+
     fontFamilies.forEach(family => {
       family.eraVariants.forEach(variant => {
         if (!allEras.has(variant.era)) {
@@ -53,7 +93,7 @@ const FontEvolution: React.FC = () => {
         }
       });
     });
-    
+
     return Array.from(allEras.entries()).sort((a, b) => {
       const getStartYear = (era: string) => {
         const match = era.match(/(\d+)/);
@@ -65,106 +105,87 @@ const FontEvolution: React.FC = () => {
     });
   }, [fontFamilies]);
 
+  const renderRightActions = () => (
+    <ViewToggle
+      views={viewOptions}
+      activeView={activeView}
+      onViewChange={(key) => setActiveView(key as 'grid' | 'timeline')}
+    />
+  );
+
   return (
     <div className="font-evolution-page animate-fade-in">
-      <div className="page-header">
-        <div className="page-title-wrap">
-          <h1 className="page-title">✍️ 字体流变档案</h1>
-          <p className="page-subtitle">
-            探索中华书法字体的演变脉络，领略 {fontFamilies.length} 种字体风格，收录 {totalSignboards} 块招牌样本
-          </p>
-        </div>
-        <div className="header-actions">
-          <div className="view-toggle">
-            <button
-              className={`view-btn ${activeView === 'grid' ? 'active' : ''}`}
-              onClick={() => setActiveView('grid')}
-            >
-              ▦ 网格视图
-            </button>
-            <button
-              className={`view-btn ${activeView === 'timeline' ? 'active' : ''}`}
-              onClick={() => setActiveView('timeline')}
-            >
-              📊 时间线视图
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        icon="✍️"
+        title="字体流变档案"
+        subtitle={`探索中华书法字体的演变脉络，领略 ${fontFamilies.length} 种字体风格，收录 ${totalSignboards} 块招牌样本`}
+        rightActions={renderRightActions()}
+      />
 
-      <div className="filter-section">
-        <div className="filter-header">
-          <h2>🔍 筛选条件</h2>
-          <button className="reset-btn" onClick={resetFilters}>
-            重置筛选
-          </button>
-        </div>
-        <div className="filter-grid">
-          <div className="filter-group">
-            <label className="filter-label">字体风格</label>
-            <select
-              className="filter-select"
+      <FilterSection title="🔍 筛选条件">
+        <FilterGrid>
+          <FilterGroup label="字体风格">
+            <FormSelect
               value={filters.style}
               onChange={(e) => handleFilterChange('style', e.target.value)}
             >
               {fontStyleCategories.map(cat => (
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
-            </select>
-          </div>
+            </FormSelect>
+          </FilterGroup>
 
-          <div className="filter-group">
-            <label className="filter-label">年代</label>
-            <select
-              className="filter-select"
+          <FilterGroup label="年代">
+            <FormSelect
               value={filters.era}
               onChange={(e) => handleFilterChange('era', e.target.value)}
             >
-              <option value="全部">全部年代</option>
-              <option value="先秦">先秦</option>
-              <option value="汉代">汉代</option>
-              <option value="唐代">唐代</option>
-              <option value="宋代">宋代</option>
-              <option value="清代">清代</option>
-              <option value="民国">民国</option>
-              <option value="现代">现代</option>
-            </select>
-          </div>
+              {eraOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </FormSelect>
+          </FilterGroup>
 
-          <div className="filter-group">
-            <label className="filter-label">学习难度</label>
-            <select
-              className="filter-select"
+          <FilterGroup label="学习难度">
+            <FormSelect
               value={filters.difficulty}
               onChange={(e) => handleFilterChange('difficulty', e.target.value)}
             >
               {fontDifficulties.map(d => (
                 <option key={d.value} value={d.value}>{d.label}</option>
               ))}
-            </select>
-          </div>
+            </FormSelect>
+          </FilterGroup>
 
-          <div className="filter-group">
-            <label className="filter-label">排序方式</label>
-            <select
-              className="filter-select"
+          <FilterGroup label="排序方式">
+            <FormSelect
               value={filters.sortBy}
               onChange={(e) => handleFilterChange('sortBy', e.target.value)}
             >
               {fontSortOptions.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
-            </select>
-          </div>
-        </div>
-        <div className="filter-footer">
-          <span className="result-count">
+            </FormSelect>
+          </FilterGroup>
+        </FilterGrid>
+
+        <FilterFooter>
+          <span className="common-result-count">
             共找到 <strong>{filteredFamilies.length}</strong> 种字体
           </span>
-        </div>
-      </div>
+          <ResetButton onClick={resetFilters} />
+        </FilterFooter>
+      </FilterSection>
 
-      {activeView === 'grid' ? (
+      {filteredFamilies.length === 0 ? (
+        <EmptyState
+          icon="🔍"
+          title="没有找到匹配的字体"
+          description="尝试调整筛选条件，或点击重置查看全部字体"
+          actionLabel="重置筛选"
+          onAction={resetFilters}
+        />
+      ) : activeView === 'grid' ? (
         <div className="font-grid">
           {filteredFamilies.map(family => (
             <FontFamilyCard
@@ -205,39 +226,14 @@ const FontEvolution: React.FC = () => {
         </div>
       )}
 
-      <div className="font-stats-section">
-        <h2 className="section-title">📊 字体数据概览</h2>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-card-icon">📜</div>
-            <div className="stat-card-content">
-              <h3>{fontFamilies.length}</h3>
-              <p>字体种类</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-icon">🪧</div>
-            <div className="stat-card-content">
-              <h3>{totalSignboards}</h3>
-              <p>招牌样本</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-icon">📅</div>
-            <div className="stat-card-content">
-              <h3>{new Set(fontFamilies.flatMap(f => f.eraVariants.map(v => v.era))).size}</h3>
-              <p>历史时期</p>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-icon">🏆</div>
-            <div className="stat-card-content">
-              <h3>{fontFamilies.filter(f => f.difficulty === 'advanced').length}</h3>
-              <p>高难度字体</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StatsGrid
+        title="📊 字体数据概览"
+        stats={pageStats.map(stat => ({
+          icon: stat.icon,
+          value: String(stat.value),
+          label: typeof stat.label === 'string' ? stat.label : '数据'
+        }))}
+      />
     </div>
   );
 };

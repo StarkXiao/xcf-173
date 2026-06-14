@@ -356,7 +356,7 @@ export interface FontFamily {
   historicalSignificance: number;
 }
 
-export interface FontEvolutionFilters {
+export interface FontEvolutionFilters extends FilterStateBase {
   style: string;
   era: string;
   difficulty: string;
@@ -365,13 +365,17 @@ export interface FontEvolutionFilters {
 
 export interface FontEvolutionContextType {
   fontFamilies: FontFamily[];
+  filters: FontEvolutionFilters;
+  setFilters: (filters: Partial<FontEvolutionFilters>) => void;
+  resetFilters: () => void;
+  handleFilterChange: (key: keyof FontEvolutionFilters, value: string) => void;
   getFontFamily: (id: string) => FontFamily | undefined;
   getFontFamilyByStyle: (style: string) => FontFamily | undefined;
   getSignboardsForFontFamily: (fontFamilyId: string) => Signboard[];
   getEraVariantsForFontFamily: (fontFamilyId: string) => FontEraVariant[];
   getAllFontStyles: () => string[];
   getAllFontDifficulties: () => string[];
-  filterFontFamilies: (filters: FontEvolutionFilters) => FontFamily[];
+  filterFontFamilies: (filters?: Partial<FontEvolutionFilters>) => FontFamily[];
   sortFontFamilies: (families: FontFamily[], sortBy: string) => FontFamily[];
 }
 
@@ -525,6 +529,23 @@ export interface FavoriteResearchStats {
   notesPerCollection: Record<string, number>;
 }
 
+export interface ArrayFilterField {
+  eras: string[];
+  fontStyles: string[];
+  conditions: string[];
+  colors: string[];
+  tags: string[];
+  locations: string[];
+  buildingTypes: string[];
+  onlyInCollections: string[];
+}
+
+export interface FilterStateBase extends Partial<ArrayFilterField> {
+  yearRange?: [number, number] | null;
+  hasRestoration?: boolean | null;
+  onlyFavorites?: boolean;
+}
+
 export interface ResearchLabContextType {
   notes: ResearchNote[];
   colorGroups: ColorComparisonGroup[];
@@ -550,6 +571,8 @@ export interface ResearchLabContextType {
   setActiveFilter: (filter: Partial<SampleFilterCriteria>) => void;
   resetActiveFilter: () => void;
   filterSignboards: (signboards: Signboard[], criteria: SampleFilterCriteria, favoriteIds?: string[], collectionMap?: Map<string, string[]>) => Signboard[];
+  toggleArrayFilter: (field: keyof ArrayFilterField, value: string) => void;
+  activeFilterCount: number;
 }
 
 export type RankingCategory = 'block' | 'style' | 'heat';

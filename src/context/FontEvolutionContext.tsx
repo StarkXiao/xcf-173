@@ -1,92 +1,157 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { FontFamily, FontEvolutionFilters, FontEvolutionContextType, Signboard } from '../types';
 import { fontFamilies } from '../data/fontFamilies';
 import { useSignboards } from './SignboardsContext';
+import { useFilterState } from '../hooks';
 
 const FontEvolutionContext = createContext<FontEvolutionContextType | undefined>(undefined);
 
+const defaultFontFilters: FontEvolutionFilters = {
+  style: '全部',
+  era: '全部',
+  difficulty: '全部',
+  sortBy: 'historicalSignificance'
+};
+
 export const FontEvolutionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { signboards, getSignboard } = useSignboards();
+  const { getSignboard } = useSignboards();
 
-  const getFontFamily = (id: string): FontFamily | undefined => {
-    return fontFamilies.find(f => f.id === id);
-  };
+  const {
+    filter: filters,
+    setFilter: setFilters,
+    resetFilter: resetFilters
+  } = useFilterState<FontEvolutionFilters>({
+    defaultFilter: defaultFontFilters
+  });
 
-  const getFontFamilyByStyle = (style: string): FontFamily | undefined => {
-    return fontFamilies.find(f => f.style === style);
-  };
+  const getFontFamily = useCallback(
+    (id: string): FontFamily | undefined => {
+      return fontFamilies.find(f => f.id === id);
+    },
+    []
+  );
 
-  const getSignboardsForFontFamily = (fontFamilyId: string): Signboard[] => {
-    const fontFamily = getFontFamily(fontFamilyId);
-    if (!fontFamily) return [];
-    return fontFamily.signboardIds
-      .map(id => getSignboard(id))
-      .filter((s): s is Signboard => s !== undefined);
-  };
+  const getFontFamilyByStyle = useCallback(
+    (style: string): FontFamily | undefined => {
+      return fontFamilies.find(f => f.style === style);
+    },
+    []
+  );
 
-  const getEraVariantsForFontFamily = (fontFamilyId: string) => {
-    const fontFamily = getFontFamily(fontFamilyId);
-    return fontFamily?.eraVariants || [];
-  };
+  const getSignboardsForFontFamily = useCallback(
+    (fontFamilyId: string): Signboard[] => {
+      const fontFamily = getFontFamily(fontFamilyId);
+      if (!fontFamily) return [];
+      return fontFamily.signboardIds
+        .map(id => getSignboard(id))
+        .filter((s): s is Signboard => s !== undefined);
+    },
+    [getFontFamily, getSignboard]
+  );
 
-  const getAllFontStyles = (): string[] => {
+  const getEraVariantsForFontFamily = useCallback(
+    (fontFamilyId: string) => {
+      const fontFamily = getFontFamily(fontFamilyId);
+      return fontFamily?.eraVariants || [];
+    },
+    [getFontFamily]
+  );
+
+  const getAllFontStyles = useCallback((): string[] => {
     return [...new Set(fontFamilies.map(f => f.style))];
-  };
+  }, []);
 
-  const getAllFontDifficulties = (): string[] => {
+  const getAllFontDifficulties = useCallback((): string[] => {
     return ['basic', 'intermediate', 'advanced'];
-  };
+  }, []);
 
-  const filterFontFamilies = (filters: FontEvolutionFilters): FontFamily[] => {
-    let result = [...fontFamilies];
+  const filterFontFamilies = useCallback(
+    (filterOverrides?: Partial<FontEvolutionFilters>): FontFamily[] => {
+      const activeFilters = filterOverrides || filters;
+      let result = [...fontFamilies];
 
-    if (filters.style && filters.style !== '全部') {
-      result = result.filter(f => f.style === filters.style);
-    }
+      if (activeFilters.style && activeFilters.style !== '全部') {
+        result = result.filter(f => f.style === activeFilters.style);
+      }
 
-    if (filters.era && filters.era !== '全部') {
-      result = result.filter(f => 
-        f.eraVariants.some(v => v.era.includes(filters.era) || filters.era.includes(v.era))
-      );
-    }
+      if (activeFilters.era && activeFilters.era !== '全部') {
+        result = result.filter(f =>
+          f.eraVariants.some(
+            v => v.era.includes(activeFilters.era!) || activeFilters.era!.includes(v.era)
+          )
+        );
+      }
 
-    if (filters.difficulty && filters.difficulty !== '全部') {
-      result = result.filter(f => f.difficulty === filters.difficulty);
-    }
+      if (activeFilters.difficulty && activeFilters.difficulty !== '全部') {
+        result = result.filter(f => f.difficulty === activeFilters.difficulty);
+      }
 
-    return result;
-  };
+      return result;
+    },
+    [filters]
+  );
 
-  const sortFontFamilies = (families: FontFamily[], sortBy: string): FontFamily[] => {
-    const result = [...families];
-    
-    switch (sortBy) {
-      case 'historicalSignificance':
-        return result.sort((a, b) => b.historicalSignificance - a.historicalSignificance);
-      case 'artisticValue':
-        return result.sort((a, b) => b.artisticValue - a.artisticValue);
-      case 'readability':
-        return result.sort((a, b) => b.readability - a.readability);
-      case 'signboardCount':
-        return result.sort((a, b) => b.signboardIds.length - a.signboardIds.length);
-      case 'name':
-      default:
-        return result.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
-    }
-  };
+  const sortFontFamilies = useCallback(
+    (families: FontFamily[], sortBy: string): FontFamily[] => {
+      const result = [...families];
 
-  const value = useMemo(() => ({
-    fontFamilies,
-    getFontFamily,
-    getFontFamilyByStyle,
-    getSignboardsForFontFamily,
-    getEraVariantsForFontFamily,
-    getAllFontStyles,
-    getAllFontDifficulties,
-    filterFontFamilies,
-    sortFontFamilies
-  }), [signboards]);
+      switch (sortBy) {
+        case 'historicalSignificance':
+          return result.sort((a, b) => b.historicalSignificance - a.historicalSignificance);
+        case 'artisticValue':
+          return result.sort((a, b) => b.artisticValue - a.artisticValue);
+        case 'readability':
+          return result.sort((a, b) => b.readability - a.readability);
+        case 'signboardCount':
+          return result.sort((a, b) => b.signboardIds.length - a.signboardIds.length);
+        case 'name':
+        default:
+          return result.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+      }
+    },
+    []
+  );
+
+  const handleFilterChange = useCallback(
+    (key: keyof FontEvolutionFilters, value: string) => {
+      setFilters({ [key]: value } as Partial<FontEvolutionFilters>);
+    },
+    [setFilters]
+  );
+
+  const value = useMemo(
+    () => ({
+      fontFamilies,
+      filters,
+      setFilters,
+      resetFilters,
+      handleFilterChange,
+      getFontFamily,
+      getFontFamilyByStyle,
+      getSignboardsForFontFamily,
+      getEraVariantsForFontFamily,
+      getAllFontStyles,
+      getAllFontDifficulties,
+      filterFontFamilies,
+      sortFontFamilies
+    }),
+    [
+      fontFamilies,
+      filters,
+      setFilters,
+      resetFilters,
+      handleFilterChange,
+      getFontFamily,
+      getFontFamilyByStyle,
+      getSignboardsForFontFamily,
+      getEraVariantsForFontFamily,
+      getAllFontStyles,
+      getAllFontDifficulties,
+      filterFontFamilies,
+      sortFontFamilies
+    ]
+  );
 
   return (
     <FontEvolutionContext.Provider value={value}>
