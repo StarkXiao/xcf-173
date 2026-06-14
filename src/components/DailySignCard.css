@@ -1,0 +1,442 @@
+.daily-sign-card {
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-secondary));
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.daily-sign-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent-color);
+}
+
+.daily-sign-card.full-view {
+  max-width: 560px;
+}
+
+.dsc-toast {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: dsc-toast-in 0.25s ease-out;
+  white-space: nowrap;
+}
+
+@keyframes dsc-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dsc-toast-success {
+  background-color: rgba(46, 125, 50, 0.95);
+  color: white;
+}
+
+.dsc-toast-warning {
+  background-color: rgba(245, 124, 0, 0.95);
+  color: white;
+}
+
+.dsc-toast-error {
+  background-color: rgba(198, 40, 40, 0.95);
+  color: white;
+}
+
+.dsc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem 1.25rem 0.75rem;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-color));
+  position: relative;
+}
+
+.dsc-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.dsc-date-block {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dsc-date-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: white;
+}
+
+.dsc-day {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.dsc-date-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dsc-month {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.dsc-weekday {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.dsc-theme-tag {
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dsc-theme-label {
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.dsc-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dsc-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.dsc-quote {
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  background-color: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dsc-quote-mark {
+  font-size: 1.4rem;
+  color: var(--accent-color);
+  font-weight: 700;
+  margin: 0 0.25rem;
+  font-family: serif;
+}
+
+.dsc-quote-text {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.7;
+  letter-spacing: 0.05em;
+  font-family: serif;
+}
+
+.dsc-signboard-preview {
+  padding: 1.25rem;
+}
+
+.dsc-signboard-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  gap: 1rem;
+}
+
+.dsc-signboard-image {
+  width: 110px;
+  height: 110px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  border: 2px solid var(--border-color);
+}
+
+.dsc-signboard-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.daily-sign-card:hover .dsc-signboard-image img {
+  transform: scale(1.08);
+}
+
+.dsc-signboard-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.4rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), transparent);
+}
+
+.dsc-signboard-era {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.dsc-signboard-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.dsc-signboard-name {
+  font-size: 1.15rem;
+  color: var(--accent-color);
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dsc-signboard-shop {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dsc-signboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.dsc-details {
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.dsc-detail-section {
+  display: flex;
+  gap: 0.85rem;
+  padding: 0.9rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.dsc-detail-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-color));
+  border-radius: 8px;
+  opacity: 0.9;
+}
+
+.dsc-detail-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dsc-detail-title {
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  margin: 0 0 0.4rem 0;
+  font-weight: 700;
+}
+
+.dsc-detail-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.dsc-colors {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.dsc-colors-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.dsc-color-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+}
+
+.dsc-color-dot:hover {
+  transform: scale(1.2);
+}
+
+.dsc-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.dsc-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.75rem 0.4rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dsc-action-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: var(--bg-secondary);
+  transform: translateY(-2px);
+}
+
+.dsc-action-btn.active {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.dsc-action-icon {
+  font-size: 1.2rem;
+}
+
+.dsc-in-collections {
+  padding: 0.75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+}
+
+.dsc-collections-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.dsc-collection-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  color: var(--accent-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.dsc-collection-tag:hover {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .dsc-header {
+    padding: 1rem 1rem 0.6rem;
+  }
+
+  .dsc-day {
+    font-size: 2.4rem;
+  }
+
+  .dsc-signboard-link {
+    flex-direction: column;
+  }
+
+  .dsc-signboard-image {
+    width: 100%;
+    height: 160px;
+  }
+
+  .dsc-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dsc-quote {
+    padding: 1rem 1.25rem;
+  }
+
+  .dsc-quote-text {
+    font-size: 0.95rem;
+  }
+}

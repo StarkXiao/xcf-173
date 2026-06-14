@@ -7,6 +7,7 @@ import { StatusTrackingProvider } from './context/StatusTrackingContext';
 import { SignboardsProvider } from './context/SignboardsContext';
 import { FontEvolutionProvider } from './context/FontEvolutionContext';
 import { CityMemoryProvider } from './context/CityMemoryContext';
+import { CalendarProvider } from './context/CalendarContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
@@ -24,6 +25,7 @@ import TourPage from './pages/TourPage';
 import FontEvolution from './pages/FontEvolution';
 import FontFamilyDetail from './pages/FontFamilyDetail';
 import CityMemory from './pages/CityMemory';
+import SignboardCalendar from './pages/SignboardCalendar';
 
 function App() {
   return (
@@ -35,31 +37,34 @@ function App() {
               <OralArchivesProvider>
                 <StatusTrackingProvider>
                   <CityMemoryProvider>
-                    <BrowserRouter>
-                      <div className="app">
-                        <Navbar />
-                        <main>
-                          <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/signboard/:id" element={<SignboardDetail />} />
-                            <Route path="/favorites" element={<Favorites />} />
-                            <Route path="/compare" element={<Compare />} />
-                            <Route path="/compare-report" element={<CompareReport />} />
-                            <Route path="/collection/:id" element={<CollectionDetail />} />
-                            <Route path="/roaming" element={<CityRoaming />} />
-                            <Route path="/map-atlas" element={<DistrictMapAtlas />} />
-                            <Route path="/editor" element={<EditorPage />} />
-                            <Route path="/exhibition" element={<ExhibitionHall />} />
-                            <Route path="/exhibition/exhibit/:id" element={<ExhibitDetail />} />
-                            <Route path="/exhibition/compare" element={<CompareArea />} />
-                            <Route path="/exhibition/tour" element={<TourPage />} />
-                            <Route path="/font-evolution" element={<FontEvolution />} />
-                            <Route path="/font-evolution/:id" element={<FontFamilyDetail />} />
-                            <Route path="/city-memory" element={<CityMemory />} />
-                          </Routes>
-                        </main>
-                      </div>
-                    </BrowserRouter>
+                    <CalendarProvider>
+                      <BrowserRouter>
+                        <div className="app">
+                          <Navbar />
+                          <main>
+                            <Routes>
+                              <Route path="/" element={<Home />} />
+                              <Route path="/calendar" element={<SignboardCalendar />} />
+                              <Route path="/signboard/:id" element={<SignboardDetail />} />
+                              <Route path="/favorites" element={<Favorites />} />
+                              <Route path="/compare" element={<Compare />} />
+                              <Route path="/compare-report" element={<CompareReport />} />
+                              <Route path="/collection/:id" element={<CollectionDetail />} />
+                              <Route path="/roaming" element={<CityRoaming />} />
+                              <Route path="/map-atlas" element={<DistrictMapAtlas />} />
+                              <Route path="/editor" element={<EditorPage />} />
+                              <Route path="/exhibition" element={<ExhibitionHall />} />
+                              <Route path="/exhibition/exhibit/:id" element={<ExhibitDetail />} />
+                              <Route path="/exhibition/compare" element={<CompareArea />} />
+                              <Route path="/exhibition/tour" element={<TourPage />} />
+                              <Route path="/font-evolution" element={<FontEvolution />} />
+                              <Route path="/font-evolution/:id" element={<FontFamilyDetail />} />
+                              <Route path="/city-memory" element={<CityMemory />} />
+                            </Routes>
+                          </main>
+                        </div>
+                      </BrowserRouter>
+                    </CalendarProvider>
                   </CityMemoryProvider>
                 </StatusTrackingProvider>
               </OralArchivesProvider>

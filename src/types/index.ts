@@ -427,3 +427,47 @@ export const submissionStatusLabels: Record<SubmissionStatus, { text: string; cl
   'rejected': { text: '已拒绝', className: 'status-rejected', icon: '❌', color: '#ef4444' },
   'published': { text: '已入册', className: 'status-published', icon: '📖', color: '#3b82f6' }
 };
+
+export interface DailySign {
+  id: string;
+  date: string;
+  signboardId: string;
+  quote: string;
+  theme: string;
+  story: string;
+  knowledge: string;
+  trivia: string;
+}
+
+export interface MonthlyTheme {
+  id: string;
+  month: number;
+  year: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  coverImage: string;
+  accentColor: string;
+  themeType: 'season' | 'festival' | 'era' | 'craft';
+  featuredSignboardIds: string[];
+  dailySigns: DailySign[];
+  tags: string[];
+}
+
+export interface CalendarContextType {
+  monthlyThemes: MonthlyTheme[];
+  currentMonth: number;
+  currentYear: number;
+  setCurrentMonth: (month: number) => void;
+  setCurrentYear: (year: number) => void;
+  getMonthlyTheme: (year: number, month: number) => MonthlyTheme | undefined;
+  getDailySign: (date: string) => DailySign | undefined;
+  getDailySignsForMonth: (year: number, month: number) => DailySign[];
+  savedDailySigns: string[];
+  toggleSaveDailySign: (date: string) => void;
+  isDailySignSaved: (date: string) => boolean;
+  getSavedDailySigns: () => DailySign[];
+  monthlyNotes: Record<string, string>;
+  saveMonthlyNote: (year: number, month: number, note: string) => void;
+  getMonthlyNote: (year: number, month: number) => string;
+}
