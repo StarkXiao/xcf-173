@@ -821,6 +821,402 @@
   opacity: 0.7;
 }
 
+.fav-rankings-view,
+.fav-corners-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.fav-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  align-items: flex-end;
+}
+
+.fav-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fav-filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fav-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.fav-filter-btn {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.fav-filter-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.fav-filter-btn.active {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.25);
+}
+
+.fav-filter-stats {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  align-self: flex-end;
+}
+
+.fav-rankings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fav-ranking-card {
+  display: flex;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.fav-ranking-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.fav-ranking-cover {
+  width: 260px;
+  min-height: 180px;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fav-ranking-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.fav-ranking-card:hover .fav-ranking-cover img {
+  transform: scale(1.06);
+}
+
+.fav-ranking-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.fav-ranking-cover-info {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  color: #fff;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.fav-ranking-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.fav-ranking-cover-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.fav-ranking-cover-sub {
+  font-size: 0.78rem;
+  margin: 2px 0 0;
+  opacity: 0.9;
+}
+
+.fav-ranking-body {
+  flex: 1;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.fav-ranking-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.fav-ranking-badge {
+  padding: 0.2rem 0.65rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.fav-ranking-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.fav-ranking-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fav-ranking-action-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.fav-ranking-action-btn.primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  border-color: var(--primary-color);
+}
+
+.fav-ranking-action-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 69, 19, 0.25);
+}
+
+.fav-ranking-action-btn.unfav {
+  background-color: transparent;
+  color: var(--text-muted);
+  border-color: transparent;
+}
+
+.fav-ranking-action-btn.unfav:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.fav-corners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.25rem;
+}
+
+.fav-corner-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.fav-corner-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.fav-corner-cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.fav-corner-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.fav-corner-card:hover .fav-corner-cover img {
+  transform: scale(1.05);
+}
+
+.fav-corner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+}
+
+.fav-corner-city-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  z-index: 2;
+}
+
+.fav-corner-cover-info {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  right: 14px;
+  color: #fff;
+  z-index: 2;
+}
+
+.fav-corner-cover-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.fav-corner-cover-district {
+  font-size: 0.78rem;
+  margin: 2px 0 0;
+  opacity: 0.85;
+}
+
+.fav-corner-body {
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.fav-corner-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.fav-corner-tag {
+  padding: 2px 8px;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.fav-corner-atmosphere,
+.fav-corner-besttime {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fav-corner-landmarks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.fav-corner-landmark {
+  padding: 2px 8px;
+  background-color: rgba(139, 69, 19, 0.08);
+  color: var(--primary-color);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.fav-corner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.fav-corner-signboard-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: auto;
+}
+
+@media (max-width: 900px) {
+  .fav-ranking-card {
+    flex-direction: column;
+  }
+
+  .fav-ranking-cover {
+    width: 100%;
+    min-height: 140px;
+  }
+
+  .fav-corners-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fav-filter-bar {
+    padding: 0.85rem;
+    gap: 0.85rem;
+  }
+
+  .fav-filter-stats {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .status-group-header {
     gap: 0.5rem;

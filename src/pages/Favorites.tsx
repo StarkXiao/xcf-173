@@ -5,15 +5,17 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import { useOralArchives } from '../context/OralArchivesContext';
 import { useStatusTracking } from '../context/StatusTrackingContext';
+import { useStreetCorner } from '../context/StreetCornerContext';
 import SignboardCard from '../components/SignboardCard';
 import CollectionCard from '../components/CollectionCard';
 import CollectionEditorModal from '../components/CollectionEditorModal';
 import RestorationTimeline from '../components/RestorationTimeline';
 import { eraStages, getSignboardEraStages, getEventsInEraStage, conditionStatusLabels } from '../types';
-import type { Signboard, RestorationEvent, Collection, OralArchive, ConditionStatus } from '../types';
+import { categoryLabels, timeRangeLabels } from '../data/streetcorners';
+import type { Signboard, RestorationEvent, Collection, OralArchive, ConditionStatus, RankingCategory, RankingTimeRange } from '../types';
 import './Favorites.css';
 
-type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives' | 'status-grouped';
+type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives' | 'status-grouped' | 'rankings' | 'street-corners';
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +23,16 @@ const Favorites: React.FC = () => {
   const { getFavoriteSignboards, favorites } = useFavorites();
   const { collections, deleteCollection } = useCollections();
   const { archives, saveArchive, deleteArchive, getArchive } = useOralArchives();
-  const { getLatestStatus, getStatusStats, getRecordsForSignboard } = useStatusTracking();
+  const { getLatestStatus, getRecordsForSignboard } = useStatusTracking();
+  const {
+    rankingLists,
+    streetCorners,
+    favoriteRankingLists,
+    favoriteStreetCorners,
+    toggleFavoriteRankingList,
+    toggleFavoriteStreetCorner
+  } = useStreetCorner();
+
   const [viewMode, setViewMode] = useState<ViewMode>('collections');
   const [showEditor, setShowEditor] = useState(false);
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
@@ -33,12 +44,11 @@ const Favorites: React.FC = () => {
     recordingDate: ''
   });
   const [archiveSearchKeyword, setArchiveSearchKeyword] = useState('');
-  const favoriteSignboards = getFavoriteSignboards(signboards);
+  const [rankingCategoryFilter, setRankingCategoryFilter] = useState<RankingCategory | 'all'>('all');
+  const [rankingTimeFilter, setRankingTimeFilter] = useState<RankingTimeRange | 'all'>('all');
+  const [cornerCityFilter, setCornerCityFilter] = useState<string>('all');
 
-  const statusStats = useMemo(() => {
-    const favoriteIds = favoriteSignboards.map(s => s.id);
-    return getStatusStats(favoriteIds);
-  }, [favoriteSignboards, getStatusStats]);
+  const favoriteSignboards = getFavoriteSignboards(signboards);
 
   const groupedByStatus = useMemo(() => {
     const groups: Record<string, Signboard[]> = {};
@@ -137,6 +147,30 @@ const Favorites: React.FC = () => {
     );
   }, [archiveSignboards, archiveSearchKeyword]);
 
+  const favRankingListData = useMemo(() => {
+    let result = rankingLists.filter(r => favoriteRankingLists.includes(r.id));
+    if (rankingCategoryFilter !== 'all') {
+      result = result.filter(r => r.category === rankingCategoryFilter);
+    }
+    if (rankingTimeFilter !== 'all') {
+      result = result.filter(r => r.timeRange === rankingTimeFilter);
+    }
+    return result;
+  }, [rankingLists, favoriteRankingLists, rankingCategoryFilter, rankingTimeFilter]);
+
+  const favStreetCornerData = useMemo(() => {
+    let result = streetCorners.filter(sc => favoriteStreetCorners.includes(sc.id));
+    if (cornerCityFilter !== 'all') {
+      result = result.filter(sc => sc.city === cornerCityFilter);
+    }
+    return result;
+  }, [streetCorners, favoriteStreetCorners, cornerCityFilter]);
+
+  const cornerCities = useMemo(() => {
+    const cities = new Set(streetCorners.filter(sc => favoriteStreetCorners.includes(sc.id)).map(sc => sc.city));
+    return Array.from(cities);
+  }, [streetCorners, favoriteStreetCorners]);
+
   const handleStartEditArchive = (signboardId: string) => {
     const archive = getArchive(signboardId);
     if (archive) {
@@ -183,11 +217,12 @@ const Favorites: React.FC = () => {
             已收藏 <strong>{favorites.length}</strong> 块珍贵招牌 ·
             共 <strong>{collections.length}</strong> 个藏册 ·
             口述档案 <strong>{archives.length}</strong> 份 ·
-            状态追踪 <strong>{Object.values(statusStats).reduce((a, b) => a + b, 0)}</strong> 份
+            榜单 <strong>{favoriteRankingLists.length}</strong> 个 ·
+            街区 <strong>{favoriteStreetCorners.length}</strong> 个
           </p>
         </div>
         <div className="header-actions-row">
-          {(favoriteSignboards.length > 0 || archives.length > 0) && (
+          {(favoriteSignboards.length > 0 || archives.length > 0 || favoriteRankingLists.length > 0 || favoriteStreetCorners.length > 0) && (
             <div className="view-switcher">
               <button
                 className={`view-btn ${viewMode === 'collections' ? 'active' : ''}`}
@@ -195,6 +230,20 @@ const Favorites: React.FC = () => {
                 title="藏册视图"
               >
                 📚 藏册
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'rankings' ? 'active' : ''}`}
+                onClick={() => setViewMode('rankings')}
+                title="收藏榜单"
+              >
+                🏆 榜单{favoriteRankingLists.length > 0 ? ` (${favoriteRankingLists.length})` : ''}
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'street-corners' ? 'active' : ''}`}
+                onClick={() => setViewMode('street-corners')}
+                title="收藏街区"
+              >
+                📍 街区{favoriteStreetCorners.length > 0 ? ` (${favoriteStreetCorners.length})` : ''}
               </button>
               <button
                 className={`view-btn ${viewMode === 'oral-archives' ? 'active' : ''}`}
@@ -257,7 +306,7 @@ const Favorites: React.FC = () => {
         </div>
       </div>
 
-      {(favoriteSignboards.length === 0 && archives.length === 0) && (viewMode !== 'collections' && viewMode !== 'oral-archives') ? (
+      {(favoriteSignboards.length === 0 && archives.length === 0 && favoriteRankingLists.length === 0 && favoriteStreetCorners.length === 0) && (viewMode !== 'collections' && viewMode !== 'oral-archives' && viewMode !== 'rankings' && viewMode !== 'street-corners') ? (
         <div className="empty-favorites">
           <div className="empty-icon">📚</div>
           <h2>收藏夹还是空的</h2>
@@ -480,6 +529,211 @@ const Favorites: React.FC = () => {
                       )}
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : viewMode === 'rankings' ? (
+        <div className="fav-rankings-view">
+          <div className="fav-filter-bar">
+            <div className="fav-filter-group">
+              <span className="fav-filter-label">分类筛选</span>
+              <div className="fav-filter-options">
+                {([['all', '全部'], ['block', '街区榜'], ['style', '风格榜'], ['heat', '热度榜']] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    className={`fav-filter-btn ${rankingCategoryFilter === val ? 'active' : ''}`}
+                    onClick={() => setRankingCategoryFilter(val as RankingCategory | 'all')}
+                  >
+                    {val === 'all' ? '📊' : categoryLabels[val as RankingCategory].icon} {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="fav-filter-group">
+              <span className="fav-filter-label">时间范围</span>
+              <div className="fav-filter-options">
+                {([['all', '全部'], ['weekly', '周榜'], ['monthly', '月榜'], ['allTime', '总榜']] as const).map(([val, label]) => (
+                  <button
+                    key={val}
+                    className={`fav-filter-btn ${rankingTimeFilter === val ? 'active' : ''}`}
+                    onClick={() => setRankingTimeFilter(val as RankingTimeRange | 'all')}
+                  >
+                    {val === 'all' ? '⏰' : timeRangeLabels[val as RankingTimeRange].icon} {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="fav-filter-stats">
+              📋 收藏 {favoriteRankingLists.length} 个榜单{rankingCategoryFilter !== 'all' || rankingTimeFilter !== 'all' ? ` · 筛选 ${favRankingListData.length} 个` : ''}
+            </div>
+          </div>
+
+          {favoriteRankingLists.length === 0 ? (
+            <div className="empty-favorites">
+              <div className="empty-icon">🏆</div>
+              <h2>还没有收藏榜单</h2>
+              <p>去街角发现榜，收藏你感兴趣的榜单吧</p>
+              <Link to="/streetcorner" className="go-btn">去发现榜单 →</Link>
+            </div>
+          ) : favRankingListData.length === 0 ? (
+            <div className="empty-favorites">
+              <div className="empty-icon">🔍</div>
+              <h2>没有匹配的榜单</h2>
+              <p>试试调整筛选条件</p>
+              <button className="go-btn" onClick={() => { setRankingCategoryFilter('all'); setRankingTimeFilter('all'); }}>清除筛选</button>
+            </div>
+          ) : (
+            <div className="fav-rankings-list">
+              {favRankingListData.map((ranking, idx) => {
+                const catLabel = categoryLabels[ranking.category];
+                const timeLabel = timeRangeLabels[ranking.timeRange];
+                return (
+                  <div
+                    key={ranking.id}
+                    className="fav-ranking-card animate-fade-in"
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                  >
+                    <div
+                      className="fav-ranking-cover"
+                      onClick={() => navigate(`/streetcorner/ranking/${ranking.id}`)}
+                    >
+                      <img src={ranking.coverImage} alt={ranking.title} loading="lazy" />
+                      <div className="fav-ranking-overlay" style={{ background: `linear-gradient(to right, ${ranking.accentColor}CC, ${ranking.accentColor}66)` }} />
+                      <div className="fav-ranking-cover-info">
+                        <span className="fav-ranking-icon">{ranking.icon}</span>
+                        <div>
+                          <h3 className="fav-ranking-cover-title">{ranking.title}</h3>
+                          <p className="fav-ranking-cover-sub">{ranking.subtitle}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="fav-ranking-body">
+                      <div className="fav-ranking-badges">
+                        <span className="fav-ranking-badge" style={{ backgroundColor: catLabel.color + '18', color: catLabel.color }}>
+                          {catLabel.icon} {catLabel.text}
+                        </span>
+                        <span className="fav-ranking-badge">
+                          {timeLabel.icon} {timeLabel.text}
+                        </span>
+                        <span className="fav-ranking-badge">
+                          📋 {ranking.totalItems} 块招牌
+                        </span>
+                      </div>
+                      <p className="fav-ranking-desc">{ranking.description}</p>
+                      <div className="fav-ranking-actions">
+                        <button
+                          className="fav-ranking-action-btn primary"
+                          onClick={() => navigate(`/streetcorner/ranking/${ranking.id}`)}
+                        >
+                          查看详情 →
+                        </button>
+                        <button
+                          className="fav-ranking-action-btn unfav"
+                          onClick={() => toggleFavoriteRankingList(ranking.id)}
+                        >
+                          💔 取消收藏
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : viewMode === 'street-corners' ? (
+        <div className="fav-corners-view">
+          <div className="fav-filter-bar">
+            <div className="fav-filter-group">
+              <span className="fav-filter-label">城市筛选</span>
+              <div className="fav-filter-options">
+                <button
+                  className={`fav-filter-btn ${cornerCityFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setCornerCityFilter('all')}
+                >
+                  🏙️ 全部
+                </button>
+                {cornerCities.map(city => (
+                  <button
+                    key={city}
+                    className={`fav-filter-btn ${cornerCityFilter === city ? 'active' : ''}`}
+                    onClick={() => setCornerCityFilter(city)}
+                  >
+                    📍 {city}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="fav-filter-stats">
+              📍 收藏 {favoriteStreetCorners.length} 个街区{cornerCityFilter !== 'all' ? ` · 筛选 ${favStreetCornerData.length} 个` : ''}
+            </div>
+          </div>
+
+          {favoriteStreetCorners.length === 0 ? (
+            <div className="empty-favorites">
+              <div className="empty-icon">📍</div>
+              <h2>还没有收藏街区</h2>
+              <p>去街角发现榜，收藏你感兴趣的街区吧</p>
+              <Link to="/streetcorner" className="go-btn">去探索街区 →</Link>
+            </div>
+          ) : favStreetCornerData.length === 0 ? (
+            <div className="empty-favorites">
+              <div className="empty-icon">🔍</div>
+              <h2>没有匹配的街区</h2>
+              <p>试试调整城市筛选</p>
+              <button className="go-btn" onClick={() => setCornerCityFilter('all')}>清除筛选</button>
+            </div>
+          ) : (
+            <div className="fav-corners-grid">
+              {favStreetCornerData.map((corner, idx) => (
+                <div
+                  key={corner.id}
+                  className="fav-corner-card animate-fade-in"
+                  style={{ animationDelay: `${idx * 0.05}s` }}
+                >
+                  <div
+                    className="fav-corner-cover"
+                    onClick={() => navigate(`/streetcorner/corner/${corner.id}`)}
+                  >
+                    <img src={corner.coverImage} alt={corner.name} loading="lazy" />
+                    <div className="fav-corner-overlay" />
+                    <span className="fav-corner-city-badge">📍 {corner.city}</span>
+                    <div className="fav-corner-cover-info">
+                      <h3 className="fav-corner-cover-title">{corner.name}</h3>
+                      <p className="fav-corner-cover-district">{corner.district}</p>
+                    </div>
+                  </div>
+                  <div className="fav-corner-body">
+                    <div className="fav-corner-tags">
+                      {corner.tags.map(tag => (
+                        <span key={tag} className="fav-corner-tag">#{tag}</span>
+                      ))}
+                    </div>
+                    <p className="fav-corner-atmosphere">🌆 {corner.atmosphere}</p>
+                    <p className="fav-corner-besttime">🕐 {corner.bestTimeToVisit}</p>
+                    <div className="fav-corner-landmarks">
+                      {corner.nearbyLandmarks.slice(0, 3).map(lm => (
+                        <span key={lm} className="fav-corner-landmark">🏛️ {lm}</span>
+                      ))}
+                    </div>
+                    <div className="fav-corner-actions">
+                      <span className="fav-corner-signboard-count">🪧 {corner.signboardIds.length} 块招牌</span>
+                      <button
+                        className="fav-ranking-action-btn primary"
+                        onClick={() => navigate(`/streetcorner/corner/${corner.id}`)}
+                      >
+                        查看详情 →
+                      </button>
+                      <button
+                        className="fav-ranking-action-btn unfav"
+                        onClick={() => toggleFavoriteStreetCorner(corner.id)}
+                      >
+                        💔 取消收藏
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
