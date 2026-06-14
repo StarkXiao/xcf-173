@@ -1,14 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Signboard } from '../types';
+import type { Signboard, FontFamily } from '../types';
+import { fontFamilies } from '../data/fontFamilies';
 
 interface FavoritesContextType {
   favorites: string[];
+  fontFamilyFavorites: string[];
   compareList: string[];
   reportList: string[];
   maxCompare: number;
   maxReport: number;
   toggleFavorite: (id: string) => void;
+  toggleFontFamilyFavorite: (id: string) => void;
+  isFontFamilyFavorite: (id: string) => boolean;
+  getFavoriteFontFamilies: () => FontFamily[];
   toggleCompare: (id: string) => void;
   addToCompare: (id: string) => { success: boolean; reason?: string; alreadyIn: boolean };
   clearCompare: () => void;
@@ -31,7 +36,20 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
 
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('signboard-favorites');
-    return saved ? JSON.parse(saved) : [];
+    const raw: string[] = saved ? JSON.parse(saved) : [];
+    const fontFamilyIdSet = new Set(fontFamilies.map(f => f.id));
+    return raw.filter(id => !fontFamilyIdSet.has(id));
+  });
+
+  const [fontFamilyFavorites, setFontFamilyFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem('font-family-favorites');
+    const fromFav: string[] = saved ? JSON.parse(saved) : [];
+    const oldSaved = localStorage.getItem('signboard-favorites');
+    const oldRaw: string[] = oldSaved ? JSON.parse(oldSaved) : [];
+    const fontFamilyIdSet = new Set(fontFamilies.map(f => f.id));
+    const migrated = oldRaw.filter(id => fontFamilyIdSet.has(id));
+    const merged = [...new Set([...fromFav, ...migrated])];
+    return merged;
   });
 
   const [compareList, setCompareList] = useState<string[]>(() => {
@@ -49,6 +67,10 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
   }, [favorites]);
 
   useEffect(() => {
+    localStorage.setItem('font-family-favorites', JSON.stringify(fontFamilyFavorites));
+  }, [fontFamilyFavorites]);
+
+  useEffect(() => {
     localStorage.setItem('signboard-compare', JSON.stringify(compareList));
   }, [compareList]);
 
@@ -60,6 +82,20 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
     setFavorites(prev =>
       prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
     );
+  };
+
+  const toggleFontFamilyFavorite = (id: string) => {
+    setFontFamilyFavorites(prev =>
+      prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id]
+    );
+  };
+
+  const isFontFamilyFavorite = (id: string) => fontFamilyFavorites.includes(id);
+
+  const getFavoriteFontFamilies = (): FontFamily[] => {
+    return fontFamilyFavorites
+      .map(fid => fontFamilies.find(f => f.id === fid))
+      .filter((f): f is FontFamily => f !== undefined);
   };
 
   const toggleCompare = (id: string) => {
@@ -118,11 +154,15 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
     <FavoritesContext.Provider
       value={{
         favorites,
+        fontFamilyFavorites,
         compareList,
         reportList,
         maxCompare: MAX_COMPARE,
         maxReport: MAX_REPORT,
         toggleFavorite,
+        toggleFontFamilyFavorite,
+        isFontFamilyFavorite,
+        getFavoriteFontFamilies,
         toggleCompare,
         addToCompare,
         clearCompare,

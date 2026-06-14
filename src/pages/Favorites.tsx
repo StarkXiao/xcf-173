@@ -13,12 +13,18 @@ import { eraStages, getSignboardEraStages, getEventsInEraStage, conditionStatusL
 import type { Signboard, RestorationEvent, Collection, OralArchive, ConditionStatus } from '../types';
 import './Favorites.css';
 
-type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives' | 'status-grouped';
+type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives' | 'status-grouped' | 'font-families';
+
+const difficultyLabels: Record<string, string> = {
+  basic: '入门级',
+  intermediate: '进阶级',
+  advanced: '专家级'
+};
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
   const { signboards } = useSignboards();
-  const { getFavoriteSignboards, favorites } = useFavorites();
+  const { getFavoriteSignboards, favorites, fontFamilyFavorites, getFavoriteFontFamilies, toggleFontFamilyFavorite, isFontFamilyFavorite, addToCompare, maxCompare, compareList } = useFavorites();
   const { collections, deleteCollection } = useCollections();
   const { archives, saveArchive, deleteArchive, getArchive } = useOralArchives();
   const { getLatestStatus, getStatusStats, getRecordsForSignboard } = useStatusTracking();
@@ -34,6 +40,7 @@ const Favorites: React.FC = () => {
   });
   const [archiveSearchKeyword, setArchiveSearchKeyword] = useState('');
   const favoriteSignboards = getFavoriteSignboards(signboards);
+  const favoriteFontFamilies = useMemo(() => getFavoriteFontFamilies(), [fontFamilyFavorites, getFavoriteFontFamilies]);
 
   const statusStats = useMemo(() => {
     const favoriteIds = favoriteSignboards.map(s => s.id);
@@ -181,13 +188,14 @@ const Favorites: React.FC = () => {
           <h1 className="page-title">❤️ 我的收藏</h1>
           <p className="page-subtitle">
             已收藏 <strong>{favorites.length}</strong> 块珍贵招牌 ·
+            字体家族 <strong>{fontFamilyFavorites.length}</strong> 种 ·
             共 <strong>{collections.length}</strong> 个藏册 ·
             口述档案 <strong>{archives.length}</strong> 份 ·
             状态追踪 <strong>{Object.values(statusStats).reduce((a, b) => a + b, 0)}</strong> 份
           </p>
         </div>
         <div className="header-actions-row">
-          {(favoriteSignboards.length > 0 || archives.length > 0) && (
+          {(favoriteSignboards.length > 0 || archives.length > 0 || fontFamilyFavorites.length > 0) && (
             <div className="view-switcher">
               <button
                 className={`view-btn ${viewMode === 'collections' ? 'active' : ''}`}
@@ -195,6 +203,13 @@ const Favorites: React.FC = () => {
                 title="藏册视图"
               >
                 📚 藏册
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'font-families' ? 'active' : ''}`}
+                onClick={() => setViewMode('font-families')}
+                title="字体收藏"
+              >
+                ✍️ 字体
               </button>
               <button
                 className={`view-btn ${viewMode === 'oral-archives' ? 'active' : ''}`}
@@ -249,7 +264,7 @@ const Favorites: React.FC = () => {
         </div>
       </div>
 
-      {(favoriteSignboards.length === 0 && archives.length === 0) && (viewMode !== 'collections' && viewMode !== 'oral-archives') ? (
+      {(favoriteSignboards.length === 0 && archives.length === 0 && fontFamilyFavorites.length === 0) && (viewMode !== 'collections' && viewMode !== 'oral-archives' && viewMode !== 'font-families') ? (
         <div className="empty-favorites">
           <div className="empty-icon">📚</div>
           <h2>收藏夹还是空的</h2>
@@ -472,6 +487,95 @@ const Favorites: React.FC = () => {
                       )}
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : viewMode === 'font-families' ? (
+        <div className="font-families-fav-view">
+          {favoriteFontFamilies.length === 0 ? (
+            <div className="empty-favorites">
+              <div className="empty-icon">✍️</div>
+              <h2>还没有收藏字体家族</h2>
+              <p>去字体流变档案，探索并收藏你感兴趣的字体吧</p>
+              <Link to="/font-evolution" className="go-btn">探索字体 →</Link>
+            </div>
+          ) : (
+            <div className="font-fav-list">
+              {favoriteFontFamilies.map(family => (
+                <div key={family.id} className="font-fav-card" style={{ borderLeftColor: family.color }}>
+                  <div className="font-fav-main" onClick={() => navigate(`/font-evolution/${family.id}`)}>
+                    <div className="font-fav-icon" style={{ backgroundColor: family.color + '18', color: family.color }}>
+                      {family.icon}
+                    </div>
+                    <div className="font-fav-info">
+                      <div className="font-fav-title-row">
+                        <h3 className="font-fav-name" style={{ color: family.color }}>{family.name}</h3>
+                        <span className="font-fav-en">{family.englishName}</span>
+                      </div>
+                      <p className="font-fav-desc">{family.description}</p>
+                      <div className="font-fav-tags">
+                        <span className="font-fav-tag">起源：{family.originEra}</span>
+                        <span className="font-fav-tag">风格：{family.style}</span>
+                        <span className="font-fav-tag">难度：{difficultyLabels[family.difficulty]}</span>
+                        <span className="font-fav-tag">招牌：{family.signboardIds.length} 块</span>
+                      </div>
+                      <div className="font-fav-metrics">
+                        <div className="font-fav-metric">
+                          <span className="metric-label">易读性</span>
+                          <div className="metric-bar-sm">
+                            <div className="metric-fill-sm" style={{ width: `${family.readability}%`, backgroundColor: family.color }} />
+                          </div>
+                          <span className="metric-val">{family.readability}</span>
+                        </div>
+                        <div className="font-fav-metric">
+                          <span className="metric-label">艺术性</span>
+                          <div className="metric-bar-sm">
+                            <div className="metric-fill-sm" style={{ width: `${family.artisticValue}%`, backgroundColor: family.color }} />
+                          </div>
+                          <span className="metric-val">{family.artisticValue}</span>
+                        </div>
+                        <div className="font-fav-metric">
+                          <span className="metric-label">历史性</span>
+                          <div className="metric-bar-sm">
+                            <div className="metric-fill-sm" style={{ width: `${family.historicalSignificance}%`, backgroundColor: family.color }} />
+                          </div>
+                          <span className="metric-val">{family.historicalSignificance}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-fav-actions">
+                    <button
+                      className="font-fav-action-btn unfav-btn"
+                      onClick={() => toggleFontFamilyFavorite(family.id)}
+                      title="取消收藏"
+                    >
+                      ❤️ 取消收藏
+                    </button>
+                    <Link
+                      to={`/font-evolution/${family.id}`}
+                      className="font-fav-action-btn detail-btn"
+                    >
+                      📋 查看详情
+                    </Link>
+                    {family.signboardIds.length > 0 && (
+                      <button
+                        className="font-fav-action-btn compare-btn"
+                        onClick={() => {
+                          const available = family.signboardIds.filter(sid => !compareList.includes(sid));
+                          const spaceLeft = maxCompare - compareList.length;
+                          if (spaceLeft <= 0) return;
+                          const toAdd = available.slice(0, spaceLeft);
+                          toAdd.forEach(sid => addToCompare(sid));
+                        }}
+                        title="将字体招牌加入对比"
+                      >
+                        ⚖️ 加入对比
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

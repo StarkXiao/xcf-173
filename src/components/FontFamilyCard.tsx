@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useFavorites } from '../context/FavoritesContext';
 import type { FontFamily } from '../types';
 import './FontFamilyCard.css';
 
@@ -15,6 +16,14 @@ const difficultyLabels: Record<string, { text: string; className: string }> = {
 };
 
 const FontFamilyCard: React.FC<FontFamilyCardProps> = ({ fontFamily, signboardCount }) => {
+  const { isFontFamilyFavorite, toggleFontFamilyFavorite } = useFavorites();
+
+  const handleFavClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFontFamilyFavorite(fontFamily.id);
+  };
+
   return (
     <Link to={`/font-evolution/${fontFamily.id}`} className="font-family-card">
       <div className="font-card-header" style={{ borderLeftColor: fontFamily.color }}>
@@ -25,6 +34,13 @@ const FontFamilyCard: React.FC<FontFamilyCardProps> = ({ fontFamily, signboardCo
           <h3 className="font-name">{fontFamily.name}</h3>
           <p className="font-english-name">{fontFamily.englishName}</p>
         </div>
+        <button
+          className={`font-card-fav-btn ${isFontFamilyFavorite(fontFamily.id) ? 'favorited' : ''}`}
+          onClick={handleFavClick}
+          title={isFontFamilyFavorite(fontFamily.id) ? '取消收藏' : '收藏字体'}
+        >
+          {isFontFamilyFavorite(fontFamily.id) ? '❤️' : '🤍'}
+        </button>
       </div>
 
       <div className="font-card-body">
