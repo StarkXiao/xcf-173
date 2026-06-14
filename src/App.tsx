@@ -15,6 +15,10 @@ import CollectionDetail from './pages/CollectionDetail';
 import CityRoaming from './pages/CityRoaming';
 import DistrictMapAtlas from './pages/DistrictMapAtlas';
 import EditorPage from './pages/EditorPage';
+import ExhibitionHall from './pages/ExhibitionHall';
+import ExhibitDetail from './pages/ExhibitDetail';
+import CompareArea from './pages/CompareArea';
+import TourPage from './pages/TourPage';
 
 function App() {
   return (
@@ -38,6 +42,10 @@ function App() {
                         <Route path="/roaming" element={<CityRoaming />} />
                         <Route path="/map-atlas" element={<DistrictMapAtlas />} />
                         <Route path="/editor" element={<EditorPage />} />
+                        <Route path="/exhibition" element={<ExhibitionHall />} />
+                        <Route path="/exhibition/exhibit/:id" element={<ExhibitDetail />} />
+                        <Route path="/exhibition/compare" element={<CompareArea />} />
+                        <Route path="/exhibition/tour" element={<TourPage />} />
                       </Routes>
                     </main>
                   </div>
