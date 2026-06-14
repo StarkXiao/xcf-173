@@ -482,6 +482,8 @@ export interface ResearchNote {
   createdAt: number;
   updatedAt: number;
   relatedSignboardIds: string[];
+  relatedCollectionIds: string[];
+  source: 'manual' | 'favorite' | 'collection' | 'snapshot' | 'color-group' | 'screening';
 }
 
 export interface SampleFilterCriteria {
@@ -494,6 +496,8 @@ export interface SampleFilterCriteria {
   locations: string[];
   hasRestoration: boolean | null;
   buildingTypes: string[];
+  onlyFavorites: boolean;
+  onlyInCollections: string[];
 }
 
 export interface ColorComparisonGroup {
@@ -514,6 +518,13 @@ export interface EraAnalysisSnapshot {
   createdAt: number;
 }
 
+export interface FavoriteResearchStats {
+  totalFavoritesWithNotes: number;
+  totalCollectionsWithNotes: number;
+  notesPerFavorite: Record<string, number>;
+  notesPerCollection: Record<string, number>;
+}
+
 export interface ResearchLabContextType {
   notes: ResearchNote[];
   colorGroups: ColorComparisonGroup[];
@@ -525,6 +536,10 @@ export interface ResearchLabContextType {
   getNote: (id: string) => ResearchNote | undefined;
   getNotesByCategory: (category: ResearchNote['category']) => ResearchNote[];
   getNotesForSignboard: (signboardId: string) => ResearchNote[];
+  getNotesForCollection: (collectionId: string) => ResearchNote[];
+  getNotesForCollections: (collectionIds: string[]) => ResearchNote[];
+  getNotesForFavorites: (favoriteIds: string[]) => ResearchNote[];
+  getFavoriteResearchStats: (allSignboards: Signboard[], favoriteIds: string[], collections: { id: string; items: { signboardId: string }[] }[]) => FavoriteResearchStats;
   addColorGroup: (data: Omit<ColorComparisonGroup, 'id' | 'createdAt'>) => ColorComparisonGroup;
   updateColorGroup: (id: string, updates: Partial<Omit<ColorComparisonGroup, 'id' | 'createdAt'>>) => void;
   deleteColorGroup: (id: string) => void;
@@ -534,5 +549,5 @@ export interface ResearchLabContextType {
   deleteEraSnapshot: (id: string) => void;
   setActiveFilter: (filter: Partial<SampleFilterCriteria>) => void;
   resetActiveFilter: () => void;
-  filterSignboards: (signboards: Signboard[], criteria: SampleFilterCriteria) => Signboard[];
+  filterSignboards: (signboards: Signboard[], criteria: SampleFilterCriteria, favoriteIds?: string[], collectionMap?: Map<string, string[]>) => Signboard[];
 }

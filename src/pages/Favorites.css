@@ -95,6 +95,18 @@
   box-shadow: 0 4px 12px rgba(139, 69, 19, 0.25);
 }
 
+.browse-btn.research-lab-btn {
+  background: linear-gradient(135deg, #1a365d, #2c5282);
+  color: white;
+  border-color: transparent;
+}
+
+.browse-btn.research-lab-btn:hover {
+  background: linear-gradient(135deg, #2c5282, #2b6cb0);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
+}
+
 .empty-favorites {
   text-align: center;
   padding: 6rem 2rem;

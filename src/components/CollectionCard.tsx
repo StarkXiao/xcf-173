@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Collection } from '../types';
 import { useSignboards } from '../context/SignboardsContext';
+import { useResearchLab } from '../context/ResearchLabContext';
 import './CollectionCard.css';
 
 interface CollectionCardProps {
@@ -13,6 +14,7 @@ interface CollectionCardProps {
 const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const { getSignboard } = useSignboards();
+  const { getNotesForCollection } = useResearchLab();
 
   const coverSignboards = collection.items
     .map(item => getSignboard(item.signboardId))
@@ -23,6 +25,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
     : coverSignboards[0];
 
   const otherCovers = coverSignboards.filter(s => s.id !== coverSignboard?.id).slice(0, 3);
+  const noteCount = getNotesForCollection(collection.id).length;
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -31,8 +34,17 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
 
   const handleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.closest('.collection-actions')) return;
+    if (target.closest('.collection-actions') || target.closest('.collection-research-btn')) return;
     navigate(`/collection/${collection.id}`);
+  };
+
+  const handleResearchNote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate('/research-lab', {
+      state: {
+        openCollectionNote: collection.id
+      }
+    });
   };
 
   return (
@@ -76,6 +88,15 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onD
               )}
             </div>
           )}
+        </div>
+        <div className="collection-research-row">
+          <button
+            className="collection-research-btn"
+            onClick={handleResearchNote}
+            title={noteCount > 0 ? `查看${noteCount}篇研究笔记或写新笔记` : '围绕藏册写研究笔记'}
+          >
+            🔬 {noteCount > 0 ? `研究笔记 (${noteCount})` : '写研究笔记'}
+          </button>
         </div>
       </div>
     </div>

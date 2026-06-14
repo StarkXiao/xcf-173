@@ -233,6 +233,14 @@ const Favorites: React.FC = () => {
               </button>
             </div>
           )}
+          {favoriteSignboards.length > 0 && (
+            <button
+              className="browse-btn research-lab-btn"
+              onClick={() => navigate('/research-lab', { state: { focusFavorites: true } })}
+            >
+              🔬 招牌研究室
+            </button>
+          )}
           {viewMode === 'collections' && (
             <button className="browse-btn" onClick={handleCreateCollection}>
               ➕ 新建藏册

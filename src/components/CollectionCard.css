@@ -131,3 +131,28 @@
 .collection-action-btn.danger:hover {
   background-color: #C62828;
 }
+
+.collection-research-row {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.collection-research-btn {
+  width: 100%;
+  padding: 0.55rem 1rem;
+  background: linear-gradient(135deg, #1a365d, #2c5282);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.collection-research-btn:hover {
+  background: linear-gradient(135deg, #2c5282, #2b6cb0);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(44, 82, 130, 0.3);
+}
