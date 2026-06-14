@@ -287,8 +287,18 @@ export const conditionStatusLabels: Record<ConditionStatus, { text: string; clas
   'restored': { text: '经过修复', className: 'status-restored', icon: '🏛️', color: '#3b82f6' }
 };
 
+export interface ColorPreset {
+  id: string;
+  color: string;
+  name: string;
+}
+
 export interface SignboardsContextType {
   signboards: Signboard[];
+  tags: string[];
+  eras: string[];
+  fontStyles: string[];
+  colorPresets: ColorPreset[];
   addSignboard: (data: Omit<Signboard, 'id'>) => Signboard;
   updateSignboard: (id: string, updates: Partial<Omit<Signboard, 'id'>>) => void;
   deleteSignboard: (id: string) => void;
@@ -296,8 +306,18 @@ export interface SignboardsContextType {
   getAllTags: () => string[];
   getAllEras: () => string[];
   getAllFontStyles: () => string[];
-  addTag: (tag: string) => void;
-  addEra: (era: string) => void;
-  addFontStyle: (fontStyle: string) => void;
+  getAllColorPresets: () => ColorPreset[];
+  addTag: (tag: string) => boolean;
+  deleteTag: (tag: string, removeFromSignboards?: boolean) => void;
+  renameTag: (oldTag: string, newTag: string) => void;
+  addEra: (era: string) => boolean;
+  deleteEra: (era: string, replaceWith?: string) => void;
+  renameEra: (oldEra: string, newEra: string) => void;
+  addFontStyle: (fontStyle: string) => boolean;
+  deleteFontStyle: (fontStyle: string, replaceWith?: string) => void;
+  renameFontStyle: (oldFont: string, newFont: string) => void;
+  addColorPreset: (color: string, name: string) => boolean;
+  deleteColorPreset: (id: string) => void;
+  updateColorPreset: (id: string, updates: Partial<ColorPreset>) => void;
   resetToDefault: () => void;
 }

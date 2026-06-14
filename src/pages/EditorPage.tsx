@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSignboards } from '../context/SignboardsContext';
-import type { Signboard } from '../types';
+import type { Signboard, ColorPreset } from '../types';
 import { conditionStatusLabels, eraStages, getEraStageByYear } from '../types';
 import { conditions } from '../data/signboards';
 import './EditorPage.css';
 
-type EditorTab = 'signboards' | 'tags' | 'eras' | 'import';
+type EditorTab = 'signboards' | 'tags' | 'colors' | 'eras' | 'fonts' | 'data';
 type FormMode = 'add' | 'edit' | null;
 
 const conditionOptions = conditions.filter(c => c.value !== '全部');
@@ -16,24 +16,32 @@ const buildingTypes = [
   '唐楼', '江南民居', '现代建筑', '其他'
 ];
 
-const colorPresets = [
-  '#8B4513', '#A0522D', '#CD853F', '#DAA520', '#B8860B',
-  '#8B7355', '#6B8E23', '#4682B4', '#1E3A8A', '#DC143C',
-  '#8B0000', '#DAA520', '#000000', '#FFD700', '#2F4F4F',
-  '#F5F5DC', '#FF6347', '#FFFFF0', '#228B22', '#556B2F',
-  '#FFF8DC', '#4A4A4A', '#FAEBD7', '#800080', '#FF4500',
-  '#191970', '#FFC0CB', '#FF6B6B', '#FFE4B5', '#E8D5B7'
-];
-
 const EditorPage: React.FC = () => {
   const {
     signboards,
+    tags,
+    eras,
+    fontStyles,
+    colorPresets,
     addSignboard,
     updateSignboard,
     deleteSignboard,
     getAllTags,
     getAllEras,
     getAllFontStyles,
+    getAllColorPresets,
+    addTag,
+    deleteTag,
+    renameTag,
+    addEra,
+    deleteEra,
+    renameEra,
+    addFontStyle,
+    deleteFontStyle,
+    renameFontStyle,
+    addColorPreset,
+    deleteColorPreset,
+    updateColorPreset,
     resetToDefault
   } = useSignboards();
 
@@ -62,18 +70,31 @@ const EditorPage: React.FC = () => {
 
   const [newTag, setNewTag] = useState('');
   const [newEra, setNewEra] = useState('');
-  const [newFontStyle, setNewFontStyle] = useState('');
+  const [newFont, setNewFont] = useState('');
   const [customColor, setCustomColor] = useState('#8B4513');
+  const [newColorName, setNewColorName] = useState('');
   const [newColorInput, setNewColorInput] = useState('');
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [editingTagName, setEditingTagName] = useState('');
+  const [editingEra, setEditingEra] = useState<string | null>(null);
+  const [editingEraName, setEditingEraName] = useState('');
+  const [editingFont, setEditingFont] = useState<string | null>(null);
+  const [editingFontName, setEditingFontName] = useState('');
+  const [editingColor, setEditingColor] = useState<string | null>(null);
+  const [editingColorData, setEditingColorData] = useState<{ color: string; name: string }>({ color: '', name: '' });
+  const [deleteEraReplace, setDeleteEraReplace] = useState<Record<string, string>>({});
+  const [deleteFontReplace, setDeleteFontReplace] = useState<Record<string, string>>({});
+  const [deleteTagRemoveFromSignboards, setDeleteTagRemoveFromSignboards] = useState<Record<string, boolean>>({});
 
   const showToast = (message: string, type: 'success' | 'warning' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2800);
   };
 
-  const allTags = getAllTags();
-  const allEras = getAllEras();
-  const allFontStyles = getAllFontStyles();
+  const allTagsList = getAllTags();
+  const allErasList = getAllEras();
+  const allFontStylesList = getAllFontStyles();
+  const allColorPresetsList = getAllColorPresets();
 
   const filteredSignboards = useMemo(() => {
     if (!searchKeyword.trim()) return signboards;
@@ -85,6 +106,11 @@ const EditorPage: React.FC = () => {
       s.tags.some(t => t.toLowerCase().includes(keyword))
     );
   }, [signboards, searchKeyword]);
+
+  const getSignboardCountForTag = (tag: string) => signboards.filter(s => s.tags.includes(tag)).length;
+  const getSignboardCountForEra = (era: string) => signboards.filter(s => s.era === era).length;
+  const getSignboardCountForFont = (font: string) => signboards.filter(s => s.fontStyle === font).length;
+  const getSignboardCountForColor = (color: string) => signboards.filter(s => s.colors.includes(color)).length;
 
   const handleStartAdd = () => {
     setFormMode('add');
@@ -181,7 +207,7 @@ const EditorPage: React.FC = () => {
     setEditingId(null);
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDeleteSignboard = (id: string, name: string) => {
     if (!window.confirm(`确定要删除招牌「${name}」吗？此操作不可撤销。`)) return;
     deleteSignboard(id);
     showToast(`已删除招牌「${name}」`, 'warning');
@@ -189,12 +215,12 @@ const EditorPage: React.FC = () => {
 
   const handleToggleTag = (tag: string) => {
     setFormData(prev => {
-      const tags = prev.tags || [];
+      const currentTags = prev.tags || [];
       return {
         ...prev,
-        tags: tags.includes(tag)
-          ? tags.filter(t => t !== tag)
-          : [...tags, tag]
+        tags: currentTags.includes(tag)
+          ? currentTags.filter(t => t !== tag)
+          : [...currentTags, tag]
       };
     });
   };
@@ -202,15 +228,14 @@ const EditorPage: React.FC = () => {
   const handleAddNewTag = () => {
     const trimmed = newTag.trim();
     if (!trimmed) return;
-    if (!allTags.includes(trimmed)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...(prev.tags || []), trimmed]
-      }));
-      showToast(`已添加新标签「${trimmed}」`, 'success');
-    } else {
-      handleToggleTag(trimmed);
+    if (!allTagsList.includes(trimmed)) {
+      addTag(trimmed);
     }
+    setFormData(prev => ({
+      ...prev,
+      tags: [...(prev.tags || []), trimmed]
+    }));
+    showToast(`已添加标签「${trimmed}」`, 'success');
     setNewTag('');
   };
 
@@ -247,40 +272,225 @@ const EditorPage: React.FC = () => {
   const handleAddNewEra = () => {
     const trimmed = newEra.trim();
     if (!trimmed) return;
-    if (!allEras.includes(trimmed)) {
-      setFormData(prev => ({ ...prev, era: trimmed }));
-      showToast(`已添加新年代「${trimmed}」`, 'success');
-    } else {
-      setFormData(prev => ({ ...prev, era: trimmed }));
+    if (!allErasList.includes(trimmed)) {
+      addEra(trimmed);
+      showToast(`已添加年代「${trimmed}」`, 'success');
     }
+    setFormData(prev => ({ ...prev, era: trimmed }));
     setNewEra('');
   };
 
   const handleAddNewFontStyle = () => {
-    const trimmed = newFontStyle.trim();
+    const trimmed = newFont.trim();
     if (!trimmed) return;
-    if (!allFontStyles.includes(trimmed)) {
-      setFormData(prev => ({ ...prev, fontStyle: trimmed }));
-      showToast(`已添加新字体风格「${trimmed}」`, 'success');
-    } else {
-      setFormData(prev => ({ ...prev, fontStyle: trimmed }));
+    if (!allFontStylesList.includes(trimmed)) {
+      addFontStyle(trimmed);
+      showToast(`已添加字体风格「${trimmed}」`, 'success');
     }
-    setNewFontStyle('');
+    setFormData(prev => ({ ...prev, fontStyle: trimmed }));
+    setNewFont('');
   };
 
   const handleReset = () => {
-    if (!window.confirm('确定要重置所有数据吗？这将恢复到默认的招牌数据，所有自定义修改将丢失。')) return;
+    if (!window.confirm('确定要重置所有数据吗？这将恢复到默认的招牌数据和元数据，所有自定义修改将丢失。')) return;
     resetToDefault();
     showToast('已重置为默认数据', 'warning');
+  };
+
+  const handleAddTag = () => {
+    const trimmed = newTag.trim();
+    if (!trimmed) return;
+    if (addTag(trimmed)) {
+      showToast(`已添加标签「${trimmed}」`, 'success');
+    } else {
+      showToast(`标签「${trimmed}」已存在`, 'warning');
+    }
+    setNewTag('');
+  };
+
+  const handleDeleteTag = (tag: string) => {
+    const count = getSignboardCountForTag(tag);
+    const removeFromSignboards = deleteTagRemoveFromSignboards[tag] ?? false;
+    let confirmMsg = `确定要删除标签「${tag}」吗？`;
+    if (count > 0) {
+      confirmMsg = `标签「${tag}」被 ${count} 块招牌使用。`;
+      confirmMsg += removeFromSignboards ? '将同时从这些招牌中移除此标签。' : '将仅从标签库删除，招牌上的标签不受影响。';
+    }
+    if (!window.confirm(confirmMsg)) return;
+    deleteTag(tag, removeFromSignboards);
+    showToast(`已删除标签「${tag}」`, 'warning');
+  };
+
+  const handleStartRenameTag = (tag: string) => {
+    setEditingTag(tag);
+    setEditingTagName(tag);
+  };
+
+  const handleConfirmRenameTag = () => {
+    if (!editingTag || !editingTagName.trim()) return;
+    if (editingTag === editingTagName.trim()) {
+      setEditingTag(null);
+      return;
+    }
+    if (allTagsList.includes(editingTagName.trim())) {
+      showToast(`标签「${editingTagName.trim()}」已存在`, 'warning');
+      return;
+    }
+    renameTag(editingTag, editingTagName.trim());
+    showToast(`标签已重命名为「${editingTagName.trim()}」并同步到所有招牌`, 'success');
+    setEditingTag(null);
+  };
+
+  const handleAddEraStandalone = () => {
+    const trimmed = newEra.trim();
+    if (!trimmed) return;
+    if (addEra(trimmed)) {
+      showToast(`已添加年代「${trimmed}」`, 'success');
+    } else {
+      showToast(`年代「${trimmed}」已存在`, 'warning');
+    }
+    setNewEra('');
+  };
+
+  const handleDeleteEra = (era: string) => {
+    const count = getSignboardCountForEra(era);
+    const replaceWith = deleteEraReplace[era];
+    let confirmMsg = `确定要删除年代「${era}」吗？`;
+    if (count > 0) {
+      confirmMsg = `年代「${era}」被 ${count} 块招牌使用。`;
+      if (replaceWith) {
+        confirmMsg += `这些招牌的年代将被替换为「${replaceWith}」。`;
+      } else {
+        confirmMsg += '请选择替换年代或取消删除。';
+        showToast('请为被使用的年代选择一个替换值', 'warning');
+        return;
+      }
+    }
+    if (!window.confirm(confirmMsg)) return;
+    deleteEra(era, replaceWith);
+    showToast(`已删除年代「${era}」`, 'warning');
+  };
+
+  const handleStartRenameEra = (era: string) => {
+    setEditingEra(era);
+    setEditingEraName(era);
+  };
+
+  const handleConfirmRenameEra = () => {
+    if (!editingEra || !editingEraName.trim()) return;
+    if (editingEra === editingEraName.trim()) {
+      setEditingEra(null);
+      return;
+    }
+    if (allErasList.includes(editingEraName.trim())) {
+      showToast(`年代「${editingEraName.trim()}」已存在`, 'warning');
+      return;
+    }
+    renameEra(editingEra, editingEraName.trim());
+    showToast(`年代已重命名为「${editingEraName.trim()}」并同步到所有招牌`, 'success');
+    setEditingEra(null);
+  };
+
+  const handleAddFontStandalone = () => {
+    const trimmed = newFont.trim();
+    if (!trimmed) return;
+    if (addFontStyle(trimmed)) {
+      showToast(`已添加字体「${trimmed}」`, 'success');
+    } else {
+      showToast(`字体「${trimmed}」已存在`, 'warning');
+    }
+    setNewFont('');
+  };
+
+  const handleDeleteFont = (font: string) => {
+    const count = getSignboardCountForFont(font);
+    const replaceWith = deleteFontReplace[font];
+    let confirmMsg = `确定要删除字体「${font}」吗？`;
+    if (count > 0) {
+      confirmMsg = `字体「${font}」被 ${count} 块招牌使用。`;
+      if (replaceWith) {
+        confirmMsg += `这些招牌的字体将被替换为「${replaceWith}」。`;
+      } else {
+        showToast('请为被使用的字体选择一个替换值', 'warning');
+        return;
+      }
+    }
+    if (!window.confirm(confirmMsg)) return;
+    deleteFontStyle(font, replaceWith);
+    showToast(`已删除字体「${font}」`, 'warning');
+  };
+
+  const handleStartRenameFont = (font: string) => {
+    setEditingFont(font);
+    setEditingFontName(font);
+  };
+
+  const handleConfirmRenameFont = () => {
+    if (!editingFont || !editingFontName.trim()) return;
+    if (editingFont === editingFontName.trim()) {
+      setEditingFont(null);
+      return;
+    }
+    if (allFontStylesList.includes(editingFontName.trim())) {
+      showToast(`字体「${editingFontName.trim()}」已存在`, 'warning');
+      return;
+    }
+    renameFontStyle(editingFont, editingFontName.trim());
+    showToast(`字体已重命名为「${editingFontName.trim()}」并同步到所有招牌`, 'success');
+    setEditingFont(null);
+  };
+
+  const handleAddColorPreset = () => {
+    const trimmedColor = newColorInput.trim();
+    const trimmedName = newColorName.trim();
+    if (!trimmedColor || !trimmedName) {
+      showToast('请输入颜色值和名称', 'warning');
+      return;
+    }
+    if (addColorPreset(trimmedColor, trimmedName)) {
+      showToast(`已添加颜色「${trimmedName} ${trimmedColor.toUpperCase()}」`, 'success');
+      setNewColorInput('');
+      setNewColorName('');
+    } else {
+      showToast('该颜色值已存在或格式不正确', 'warning');
+    }
+  };
+
+  const handleDeleteColorPreset = (cp: ColorPreset) => {
+    const count = getSignboardCountForColor(cp.color);
+    let confirmMsg = `确定要删除颜色「${cp.name} (${cp.color})」吗？`;
+    if (count > 0) {
+      confirmMsg += ` 该颜色被 ${count} 块招牌使用，删除仅影响颜色选择库，不会移除招牌上的颜色。`;
+    }
+    if (!window.confirm(confirmMsg)) return;
+    deleteColorPreset(cp.id);
+    showToast(`已删除颜色「${cp.name}」`, 'warning');
+  };
+
+  const handleStartEditColor = (cp: ColorPreset) => {
+    setEditingColor(cp.id);
+    setEditingColorData({ color: cp.color, name: cp.name });
+  };
+
+  const handleConfirmEditColor = () => {
+    if (!editingColor || !editingColorData.color.trim() || !editingColorData.name.trim()) return;
+    updateColorPreset(editingColor, {
+      color: editingColorData.color.trim().toUpperCase(),
+      name: editingColorData.name.trim()
+    });
+    showToast('颜色预设已更新', 'success');
+    setEditingColor(null);
   };
 
   const editingSignboard = editingId ? signboards.find(s => s.id === editingId) : null;
 
   const tabs: { id: EditorTab; label: string; icon: string }[] = [
     { id: 'signboards', label: '招牌管理', icon: '🪧' },
-    { id: 'tags', label: '标签维护', icon: '🏷️' },
-    { id: 'eras', label: '年代与字体', icon: '📅' },
-    { id: 'import', label: '数据管理', icon: '💾' }
+    { id: 'tags', label: '标签库', icon: '🏷️' },
+    { id: 'colors', label: '颜色库', icon: '🎨' },
+    { id: 'eras', label: '年代库', icon: '📅' },
+    { id: 'fonts', label: '字体库', icon: '✍️' },
+    { id: 'data', label: '数据管理', icon: '💾' }
   ];
 
   return (
@@ -298,7 +508,7 @@ const EditorPage: React.FC = () => {
         <div className="editor-header-content">
           <div>
             <h1 className="editor-title">🪧 招牌图鉴编辑台</h1>
-            <p className="editor-subtitle">录入招牌资料、维护标签颜色年代信息，同步详情页与筛选体系</p>
+            <p className="editor-subtitle">录入招牌资料、维护标签颜色年代字体信息，改动立即同步到详情页与筛选体系</p>
           </div>
           <div className="editor-header-actions">
             {activeTab === 'signboards' && !formMode && (
@@ -408,7 +618,7 @@ const EditorPage: React.FC = () => {
                         </button>
                         <button
                           className="btn-action btn-delete"
-                          onClick={() => handleDelete(signboard.id, signboard.name)}
+                          onClick={() => handleDeleteSignboard(signboard.id, signboard.name)}
                         >
                           🗑️ 删除
                         </button>
@@ -480,7 +690,7 @@ const EditorPage: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, era: e.target.value }))}
                   >
                     <option value="">请选择年代</option>
-                    {allEras.map(era => (
+                    {allErasList.map(era => (
                       <option key={era} value={era}>{era}</option>
                     ))}
                   </select>
@@ -554,7 +764,7 @@ const EditorPage: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, fontStyle: e.target.value }))}
                   >
                     <option value="">请选择字体</option>
-                    {allFontStyles.map(fs => (
+                    {allFontStylesList.map(fs => (
                       <option key={fs} value={fs}>{fs}</option>
                     ))}
                   </select>
@@ -562,8 +772,8 @@ const EditorPage: React.FC = () => {
                     type="text"
                     className="add-input"
                     placeholder="新增字体"
-                    value={newFontStyle}
-                    onChange={(e) => setNewFontStyle(e.target.value)}
+                    value={newFont}
+                    onChange={(e) => setNewFont(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddNewFontStyle()}
                   />
                   <button className="add-btn" onClick={handleAddNewFontStyle}>+</button>
@@ -617,21 +827,21 @@ const EditorPage: React.FC = () => {
                 </label>
                 <div className="colors-picker">
                   <div className="colors-presets">
-                    <p className="picker-subtitle">预设颜色：</p>
+                    <p className="picker-subtitle">颜色库（共 {allColorPresetsList.length} 个，可在「颜色库」标签页维护）：</p>
                     <div className="colors-grid">
-                      {colorPresets.map(color => (
+                      {allColorPresetsList.map(cp => (
                         <button
-                          key={color}
-                          className={`color-swatch-btn ${(formData.colors || []).includes(color) ? 'selected' : ''}`}
-                          style={{ backgroundColor: color }}
-                          onClick={() => handleToggleColor(color)}
-                          title={color}
+                          key={cp.id}
+                          className={`color-swatch-btn ${(formData.colors || []).includes(cp.color) ? 'selected' : ''}`}
+                          style={{ backgroundColor: cp.color }}
+                          onClick={() => handleToggleColor(cp.color)}
+                          title={`${cp.name} (${cp.color})`}
                         />
                       ))}
                     </div>
                   </div>
                   <div className="colors-custom">
-                    <p className="picker-subtitle">自定义颜色：</p>
+                    <p className="picker-subtitle">自定义颜色（临时使用，不入库）：</p>
                     <div className="custom-color-row">
                       <input
                         type="color"
@@ -655,7 +865,7 @@ const EditorPage: React.FC = () => {
                         }}
                       />
                       <button className="btn-secondary" onClick={handleAddCustomColor}>
-                        添加颜色
+                        临时选用
                       </button>
                     </div>
                   </div>
@@ -692,9 +902,9 @@ const EditorPage: React.FC = () => {
                 </label>
                 <div className="tags-picker">
                   <div className="tags-presets">
-                    <p className="picker-subtitle">现有标签：</p>
+                    <p className="picker-subtitle">标签库（共 {allTagsList.length} 个，可在「标签库」标签页维护）：</p>
                     <div className="tags-cloud">
-                      {allTags.map(tag => (
+                      {allTagsList.map(tag => (
                         <button
                           key={tag}
                           className={`tag-btn ${(formData.tags || []).includes(tag) ? 'active' : ''}`}
@@ -706,7 +916,7 @@ const EditorPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="tags-add">
-                    <p className="picker-subtitle">新增标签：</p>
+                    <p className="picker-subtitle">新增标签（将自动入库）：</p>
                     <div className="add-tag-row">
                       <input
                         type="text"
@@ -774,28 +984,191 @@ const EditorPage: React.FC = () => {
             <div className="section-card">
               <div className="card-header-row">
                 <h2>🏷️ 标签库管理</h2>
-                <span className="count-badge">{allTags.length} 个标签</span>
+                <span className="count-badge">{tags.length} 个标签</span>
               </div>
               <p className="section-desc">
-                标签用于招牌的分类和筛选。新增标签后，可在编辑招牌时直接选用，也会自动同步到首页的筛选体系中。
+                标签是招牌分类与筛选的核心。新增的标签会立即出现在首页筛选器和招牌编辑表单中。
+                重命名标签会自动同步到所有使用该标签的招牌。
               </p>
-              <div className="tags-maintenance">
-                {allTags.length === 0 ? (
-                  <p className="empty-hint">暂无标签，请先添加招牌时创建标签</p>
-                ) : (
-                  <div className="maintenance-grid">
-                    {allTags.map(tag => {
-                      const count = signboards.filter(s => s.tags.includes(tag)).length;
-                      return (
-                        <div key={tag} className="maintenance-item">
+
+              <div className="maintenance-add-row">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="输入新标签名称，如：百年老字号"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                />
+                <button className="btn-primary" onClick={handleAddTag}>
+                  ➕ 添加标签
+                </button>
+              </div>
+
+              <div className="maintenance-grid">
+                {tags.map(tag => {
+                  const count = getSignboardCountForTag(tag);
+                  const isEditing = editingTag === tag;
+                  return (
+                    <div key={tag} className="maintenance-item editable-item">
+                      {isEditing ? (
+                        <>
+                          <input
+                            className="form-input inline-edit-input"
+                            value={editingTagName}
+                            onChange={(e) => setEditingTagName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleConfirmRenameTag();
+                              if (e.key === 'Escape') setEditingTag(null);
+                            }}
+                            autoFocus
+                          />
+                          <button className="mini-btn confirm-btn" onClick={handleConfirmRenameTag}>✓</button>
+                          <button className="mini-btn cancel-btn" onClick={() => setEditingTag(null)}>✕</button>
+                        </>
+                      ) : (
+                        <>
                           <span className="item-tag">#{tag}</span>
                           <span className="item-count">{count} 块招牌</span>
+                          <div className="item-actions">
+                            <button className="mini-btn edit-btn" onClick={() => handleStartRenameTag(tag)} title="重命名">✏️</button>
+                            <button
+                              className="mini-btn delete-btn"
+                              onClick={() => handleDeleteTag(tag)}
+                              title={count > 0 ? `该标签被 ${count} 块招牌使用` : '删除标签'}
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {!isEditing && count > 0 && (
+                        <div className="item-sub-options">
+                          <label className="inline-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={deleteTagRemoveFromSignboards[tag] ?? false}
+                              onChange={(e) => setDeleteTagRemoveFromSignboards(prev => ({
+                                ...prev,
+                                [tag]: e.target.checked
+                              }))}
+                            />
+                            <span>删除时同步从招牌中移除</span>
+                          </label>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+
+              {tags.length === 0 && (
+                <p className="empty-hint">暂无标签，请在上方添加</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'colors' && (
+          <div className="maintenance-section">
+            <div className="section-card">
+              <div className="card-header-row">
+                <h2>🎨 颜色预设库</h2>
+                <span className="count-badge">{colorPresets.length} 个颜色</span>
+              </div>
+              <p className="section-desc">
+                颜色预设库管理招牌编辑时可选的配色方案。新增的颜色会立即出现在招牌编辑表单中。
+              </p>
+
+              <div className="color-add-row">
+                <input
+                  type="color"
+                  className="color-picker-input large-picker"
+                  value={newColorInput || '#8B4513'}
+                  onChange={(e) => {
+                    setNewColorInput(e.target.value.toUpperCase());
+                    setCustomColor(e.target.value);
+                  }}
+                />
+                <input
+                  type="text"
+                  className="form-input short-input"
+                  placeholder="#RRGGBB"
+                  value={newColorInput}
+                  onChange={(e) => {
+                    setNewColorInput(e.target.value);
+                    if (/^#([A-Fa-f0-9]{6})$/.test(e.target.value)) {
+                      setCustomColor(e.target.value);
+                    }
+                  }}
+                />
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="颜色名称，如：深木棕"
+                  value={newColorName}
+                  onChange={(e) => setNewColorName(e.target.value)}
+                />
+                <button className="btn-primary" onClick={handleAddColorPreset}>
+                  ➕ 添加颜色
+                </button>
+              </div>
+
+              <div className="colors-library-grid">
+                {colorPresets.map(cp => {
+                  const count = getSignboardCountForColor(cp.color);
+                  const isEditing = editingColor === cp.id;
+                  return (
+                    <div key={cp.id} className="color-library-item">
+                      {isEditing ? (
+                        <div className="color-edit-form">
+                          <input
+                            type="color"
+                            className="color-picker-input"
+                            value={editingColorData.color}
+                            onChange={(e) => setEditingColorData(prev => ({
+                              ...prev,
+                              color: e.target.value.toUpperCase()
+                            }))}
+                          />
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="颜色名称"
+                            value={editingColorData.name}
+                            onChange={(e) => setEditingColorData(prev => ({
+                              ...prev,
+                              name: e.target.value
+                            }))}
+                          />
+                          <button className="mini-btn confirm-btn" onClick={handleConfirmEditColor}>✓</button>
+                          <button className="mini-btn cancel-btn" onClick={() => setEditingColor(null)}>✕</button>
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            className="color-library-swatch"
+                            style={{ backgroundColor: cp.color }}
+                          />
+                          <div className="color-library-info">
+                            <div className="color-library-name">{cp.name}</div>
+                            <div className="color-library-code">{cp.color}</div>
+                            <div className="color-library-count">{count} 块招牌使用</div>
+                          </div>
+                          <div className="item-actions">
+                            <button className="mini-btn edit-btn" onClick={() => handleStartEditColor(cp)} title="编辑">✏️</button>
+                            <button className="mini-btn delete-btn" onClick={() => handleDeleteColorPreset(cp)} title="删除">🗑️</button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {colorPresets.length === 0 && (
+                <p className="empty-hint">暂无颜色预设，请在上方添加</p>
+              )}
             </div>
           </div>
         )}
@@ -832,39 +1205,82 @@ const EditorPage: React.FC = () => {
             <div className="section-card">
               <div className="card-header-row">
                 <h2>🕰️ 自定义年代标签</h2>
-                <span className="count-badge">{allEras.length} 个年代</span>
+                <span className="count-badge">{eras.length} 个年代</span>
               </div>
               <p className="section-desc">
-                除了系统内置的年代阶段，招牌还可以有自定义的年代标签（如"民国"、"1930s"等）。
+                自定义年代标签是招牌筛选和展示的重要分类。新增年代会立即出现在首页筛选器中。
+                重命名年代会自动同步到所有使用该年代的招牌。删除被使用的年代必须选择一个替换值。
               </p>
-              <div className="maintenance-grid">
-                {allEras.map(era => {
-                  const count = signboards.filter(s => s.era === era).length;
-                  return (
-                    <div key={era} className="maintenance-item">
-                      <span className="item-era">{era}</span>
-                      <span className="item-count">{count} 块招牌</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            <div className="section-card">
-              <div className="card-header-row">
-                <h2>✍️ 字体风格库</h2>
-                <span className="count-badge">{allFontStyles.length} 种字体</span>
+              <div className="maintenance-add-row">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="输入新年代，如：明末清初"
+                  value={newEra}
+                  onChange={(e) => setNewEra(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddEraStandalone()}
+                />
+                <button className="btn-primary" onClick={handleAddEraStandalone}>
+                  ➕ 添加年代
+                </button>
               </div>
-              <p className="section-desc">
-                字体风格是招牌美学的核心元素。管理字体风格库，便于统一分类和筛选。
-              </p>
-              <div className="maintenance-grid">
-                {allFontStyles.map(fs => {
-                  const count = signboards.filter(s => s.fontStyle === fs).length;
+
+              <div className="maintenance-list">
+                {eras.map(era => {
+                  const count = getSignboardCountForEra(era);
+                  const isEditing = editingEra === era;
+                  const otherEras = eras.filter(e => e !== era);
                   return (
-                    <div key={fs} className="maintenance-item">
-                      <span className="item-font">{fs}</span>
-                      <span className="item-count">{count} 块招牌</span>
+                    <div key={era} className="maintenance-list-item editable-item">
+                      {isEditing ? (
+                        <>
+                          <input
+                            className="form-input inline-edit-input"
+                            value={editingEraName}
+                            onChange={(e) => setEditingEraName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleConfirmRenameEra();
+                              if (e.key === 'Escape') setEditingEra(null);
+                            }}
+                            autoFocus
+                          />
+                          <button className="mini-btn confirm-btn" onClick={handleConfirmRenameEra}>✓</button>
+                          <button className="mini-btn cancel-btn" onClick={() => setEditingEra(null)}>✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="main-item-info">
+                            <span className="item-era">{era}</span>
+                            <span className="item-count">{count} 块招牌</span>
+                          </div>
+                          <div className="item-actions">
+                            <button className="mini-btn edit-btn" onClick={() => handleStartRenameEra(era)} title="重命名">✏️</button>
+                            {count > 0 && otherEras.length > 0 && (
+                              <select
+                                className="replace-select"
+                                value={deleteEraReplace[era] || ''}
+                                onChange={(e) => setDeleteEraReplace(prev => ({
+                                  ...prev,
+                                  [era]: e.target.value
+                                }))}
+                              >
+                                <option value="">替换年代</option>
+                                {otherEras.map(e => (
+                                  <option key={e} value={e}>{e}</option>
+                                ))}
+                              </select>
+                            )}
+                            <button
+                              className="mini-btn delete-btn"
+                              onClick={() => handleDeleteEra(era)}
+                              title="删除"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
@@ -873,7 +1289,105 @@ const EditorPage: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'import' && (
+        {activeTab === 'fonts' && (
+          <div className="maintenance-section">
+            <div className="section-card">
+              <div className="card-header-row">
+                <h2>✍️ 字体风格库</h2>
+                <span className="count-badge">{fontStyles.length} 种字体</span>
+              </div>
+              <p className="section-desc">
+                字体风格是招牌美学的核心元素。新增字体会立即出现在首页筛选器和招牌编辑表单中。
+                重命名字体会自动同步到所有使用该字体的招牌。删除被使用的字体必须选择一个替换值。
+              </p>
+
+              <div className="maintenance-add-row">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="输入新字体风格，如：瘦金体"
+                  value={newFont}
+                  onChange={(e) => setNewFont(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddFontStandalone()}
+                />
+                <button className="btn-primary" onClick={handleAddFontStandalone}>
+                  ➕ 添加字体
+                </button>
+              </div>
+
+              <div className="maintenance-grid">
+                {fontStyles.map(font => {
+                  const count = getSignboardCountForFont(font);
+                  const isEditing = editingFont === font;
+                  const otherFonts = fontStyles.filter(f => f !== font);
+                  return (
+                    <div key={font} className="maintenance-item editable-item">
+                      {isEditing ? (
+                        <>
+                          <input
+                            className="form-input inline-edit-input"
+                            value={editingFontName}
+                            onChange={(e) => setEditingFontName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleConfirmRenameFont();
+                              if (e.key === 'Escape') setEditingFont(null);
+                            }}
+                            autoFocus
+                          />
+                          <button className="mini-btn confirm-btn" onClick={handleConfirmRenameFont}>✓</button>
+                          <button className="mini-btn cancel-btn" onClick={() => setEditingFont(null)}>✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="item-font" style={{ fontFamily: 'serif' }}>{font}</span>
+                          <span className="item-count">{count} 块招牌</span>
+                          <div className="item-actions">
+                            <button className="mini-btn edit-btn" onClick={() => handleStartRenameFont(font)} title="重命名">✏️</button>
+                          </div>
+                        </>
+                      )}
+                      {!isEditing && count > 0 && otherFonts.length > 0 && (
+                        <div className="item-sub-options">
+                          <select
+                            className="replace-select"
+                            value={deleteFontReplace[font] || ''}
+                            onChange={(e) => setDeleteFontReplace(prev => ({
+                              ...prev,
+                              [font]: e.target.value
+                            }))}
+                          >
+                            <option value="">删除时替换为…</option>
+                            {otherFonts.map(f => (
+                              <option key={f} value={f}>{f}</option>
+                            ))}
+                          </select>
+                          <button
+                            className="mini-btn delete-btn"
+                            onClick={() => handleDeleteFont(font)}
+                          >
+                            🗑️ 删除
+                          </button>
+                        </div>
+                      )}
+                      {!isEditing && count === 0 && (
+                        <div className="item-sub-options">
+                          <button
+                            className="mini-btn delete-btn"
+                            onClick={() => handleDeleteFont(font)}
+                          >
+                            🗑️ 删除
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'data' && (
           <div className="maintenance-section">
             <div className="section-card">
               <h2>📊 数据概览</h2>
@@ -885,17 +1399,22 @@ const EditorPage: React.FC = () => {
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">🏷️</div>
-                  <div className="stat-number">{allTags.length}</div>
+                  <div className="stat-number">{tags.length}</div>
                   <div className="stat-label">标签数量</div>
                 </div>
                 <div className="stat-card">
+                  <div className="stat-icon">🎨</div>
+                  <div className="stat-number">{colorPresets.length}</div>
+                  <div className="stat-label">颜色预设</div>
+                </div>
+                <div className="stat-card">
                   <div className="stat-icon">📅</div>
-                  <div className="stat-number">{allEras.length}</div>
+                  <div className="stat-number">{eras.length}</div>
                   <div className="stat-label">年代分类</div>
                 </div>
                 <div className="stat-card">
                   <div className="stat-icon">✍️</div>
-                  <div className="stat-number">{allFontStyles.length}</div>
+                  <div className="stat-number">{fontStyles.length}</div>
                   <div className="stat-label">字体风格</div>
                 </div>
               </div>
@@ -904,7 +1423,7 @@ const EditorPage: React.FC = () => {
             <div className="section-card danger-zone">
               <h2>⚠️ 危险操作</h2>
               <p className="section-desc">
-                重置数据将恢复到系统默认的招牌数据，所有您添加、修改的招牌数据都将丢失。此操作不可撤销。
+                重置数据将恢复到系统默认的招牌数据和元数据（标签、颜色、年代、字体），所有您添加、修改的内容都将丢失。此操作不可撤销。
               </p>
               <button className="btn-danger" onClick={handleReset}>
                 🔄 重置为默认数据
@@ -915,31 +1434,38 @@ const EditorPage: React.FC = () => {
               <h2>💡 使用提示</h2>
               <div className="tips-list">
                 <div className="tip-item">
-                  <span className="tip-icon">📝</span>
+                  <span className="tip-icon">🔄</span>
                   <div>
-                    <h4>新增招牌</h4>
-                    <p>点击「招牌管理」标签页的「新增招牌」按钮，填写完整信息后保存。新招牌会自动出现在首页和筛选体系中。</p>
-                  </div>
-                </div>
-                <div className="tip-item">
-                  <span className="tip-icon">🎨</span>
-                  <div>
-                    <h4>颜色管理</h4>
-                    <p>每块招牌至少选择一种配色。可以从预设色板选择，也可以输入十六进制颜色值自定义。颜色会展示在详情页和卡片上。</p>
+                    <h4>实时同步</h4>
+                    <p>所有标签、颜色、年代、字体的改动会<strong>立即同步</strong>到首页筛选器、详情页和编辑表单。切换到首页即可看到变化。</p>
                   </div>
                 </div>
                 <div className="tip-item">
                   <span className="tip-icon">🏷️</span>
                   <div>
-                    <h4>标签体系</h4>
-                    <p>标签是筛选和发现的核心。建议为每块招牌添加多个标签，如行业（茶庄、布行）、年代特征、特色属性等。</p>
+                    <h4>标签库管理</h4>
+                    <p>建议为招牌添加多个分类标签（如行业、年代特征、地域特色等）。重命名标签时，所有使用该标签的招牌会自动更新。</p>
                   </div>
                 </div>
                 <div className="tip-item">
-                  <span className="tip-icon">🔄</span>
+                  <span className="tip-icon">🎨</span>
                   <div>
-                    <h4>数据同步</h4>
-                    <p>所有编辑操作都会自动保存到本地存储，并实时同步到首页列表、详情页和筛选体系。刷新页面数据不会丢失。</p>
+                    <h4>颜色库使用</h4>
+                    <p>颜色库中的配色预设可以在编辑招牌时直接选用。也可以在编辑招牌时临时使用自定义颜色（不会入库）。</p>
+                  </div>
+                </div>
+                <div className="tip-item">
+                  <span className="tip-icon">📅</span>
+                  <div>
+                    <h4>年代与字体</h4>
+                    <p>删除被招牌使用的年代或字体时，必须选择一个替换值，以避免数据缺失。重命名会自动同步到所有招牌。</p>
+                  </div>
+                </div>
+                <div className="tip-item">
+                  <span className="tip-icon">💾</span>
+                  <div>
+                    <h4>数据持久化</h4>
+                    <p>所有数据（招牌 + 元数据）都保存在浏览器本地存储中。切换页面、刷新浏览器数据不会丢失。</p>
                   </div>
                 </div>
               </div>
