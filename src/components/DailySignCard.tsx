@@ -17,7 +17,7 @@ interface DailySignCardProps {
 
 const formatDisplayDate = (dateStr: string): { year: string; month: string; day: string; weekday: string } => {
   const date = new Date(dateStr);
-  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期三', '星期四', '星期五', '星期六'];
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
   return {
     year: String(date.getFullYear()),
     month: String(date.getMonth() + 1).padStart(2, '0'),
