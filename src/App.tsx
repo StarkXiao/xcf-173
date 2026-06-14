@@ -28,6 +28,7 @@ import FontFamilyDetail from './pages/FontFamilyDetail';
 import CityMemory from './pages/CityMemory';
 import SignboardCalendar from './pages/SignboardCalendar';
 import SignboardResearchLab from './pages/SignboardResearchLab';
+import RestorationArchive from './pages/RestorationArchive';
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
                               <Route path="/font-evolution/:id" element={<FontFamilyDetail />} />
                               <Route path="/city-memory" element={<CityMemory />} />
                               <Route path="/research-lab" element={<SignboardResearchLab />} />
+                              <Route path="/restoration-archive" element={<RestorationArchive />} />
                             </Routes>
                           </main>
                         </div>
