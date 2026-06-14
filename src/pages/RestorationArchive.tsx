@@ -11,6 +11,83 @@ import './RestorationArchive.css';
 type StatusFilter = 'all' | ConditionStatus;
 type ViewMode = 'grid' | 'timeline' | 'compare';
 
+type EventCondition = ConditionStatus | undefined;
+
+const eventTypeLabels: Record<RestorationEvent['type'], { label: string; icon: string }> = {
+  creation: { label: '创立', icon: '🏗️' },
+  renovation: { label: '改制', icon: '🔄' },
+  restoration: { label: '修缮', icon: '🏛️' },
+  repaint: { label: '重漆', icon: '🎨' },
+  relocation: { label: '迁址', icon: '🚚' },
+  damaged: { label: '受损', icon: '⚠️' },
+  weathered: { label: '风化', icon: '🍂' }
+};
+
+interface RestorationTransition {
+  beforeEvent: RestorationEvent;
+  afterEvent: RestorationEvent;
+  beforeCondition: ConditionStatus;
+  afterCondition: ConditionStatus;
+  beforeColors: string[];
+  afterColors: string[];
+  yearGap: number;
+  keyMoment: 'damage-repair' | 'wear-repair' | 'creation-change' | 'gradual';
+}
+
+const getRestorationTransitions = (s: Signboard): RestorationTransition[] => {
+  const history = s.restorationHistory;
+  if (history.length < 2) return [];
+
+  const transitions: RestorationTransition[] = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const beforeEvent = history[i - 1];
+    const afterEvent = history[i];
+    const beforeCondition = beforeEvent.changes?.condition || 'well-preserved';
+    const afterCondition = afterEvent.changes?.condition || 'well-preserved';
+    const beforeColors = beforeEvent.changes?.colors || afterEvent.changes?.colors || s.colors;
+    const afterColors = afterEvent.changes?.colors || s.colors;
+    const yearGap = afterEvent.year - beforeEvent.year;
+
+    let keyMoment: RestorationTransition['keyMoment'] = 'gradual';
+    if ((beforeEvent.type === 'damaged' || beforeEvent.type === 'weathered') &&
+        (afterEvent.type === 'restoration' || afterEvent.type === 'renovation' || afterEvent.type === 'repaint')) {
+      keyMoment = 'damage-repair';
+    } else if (beforeCondition === 'weathered' || beforeCondition === 'damaged') {
+      if (afterCondition === 'restored' || afterCondition === 'well-preserved') {
+        keyMoment = 'wear-repair';
+      }
+    } else if (i === 1) {
+      keyMoment = 'creation-change';
+    }
+
+    transitions.push({
+      beforeEvent,
+      afterEvent,
+      beforeCondition,
+      afterCondition,
+      beforeColors,
+      afterColors,
+      yearGap,
+      keyMoment
+    });
+  }
+
+  return transitions;
+};
+
+const getBestTransition = (s: Signboard): RestorationTransition | null => {
+  const transitions = getRestorationTransitions(s);
+  if (transitions.length === 0) return null;
+  
+  const priority: RestorationTransition['keyMoment'][] = ['damage-repair', 'wear-repair', 'creation-change', 'gradual'];
+  for (const key of priority) {
+    const found = transitions.find(t => t.keyMoment === key);
+    if (found) return found;
+  }
+  return transitions[0];
+};
+
 const RestorationArchive: React.FC = () => {
   const { signboards } = useSignboards();
   const { toggleFavorite, isFavorite, toggleCompare, isInCompare, addToCompare } = useFavorites();
@@ -21,7 +98,6 @@ const RestorationArchive: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSignboard, setSelectedSignboard] = useState<Signboard | null>(null);
   const [comparePair, setComparePair] = useState<[Signboard | null, Signboard | null]>([null, null]);
-  const [sliderPosition, setSliderPosition] = useState(50);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   const restoredSignboards = useMemo(() => {
@@ -81,12 +157,6 @@ const RestorationArchive: React.FC = () => {
     };
   };
 
-  const getBeforeAfterEvents = (s: Signboard): [RestorationEvent | null, RestorationEvent | null] => {
-    const damaged = s.restorationHistory.find(h => h.type === 'damaged');
-    const restored = s.restorationHistory.filter(h => h.type === 'restoration' || h.type === 'renovation');
-    return [damaged || s.restorationHistory[0], restored[restored.length - 1] || s.restorationHistory[s.restorationHistory.length - 1]];
-  };
-
   const statusFilters: { value: StatusFilter; label: string; icon: string; color: string }[] = [
     { value: 'all', label: '全部', icon: '📚', color: '#8B4513' },
     { value: 'restored', label: conditionStatusLabels['restored'].text, icon: conditionStatusLabels['restored'].icon, color: conditionStatusLabels['restored'].color },
@@ -95,12 +165,30 @@ const RestorationArchive: React.FC = () => {
     { value: 'damaged', label: conditionStatusLabels['damaged'].text, icon: conditionStatusLabels['damaged'].icon, color: conditionStatusLabels['damaged'].color }
   ];
 
+  const renderColorStrip = (colors: string[]) => (
+    <div className="color-strip">
+      {colors.map((c, i) => (
+        <div key={i} className="color-strip-swatch" style={{ backgroundColor: c }} title={c} />
+      ))}
+    </div>
+  );
+
+  const renderConditionBadge = (condition: EventCondition) => {
+    if (!condition) return <span className="condition-badge unknown">未知</span>;
+    const info = conditionStatusLabels[condition];
+    return (
+      <span className="condition-badge" style={{ backgroundColor: info.color + '20', color: info.color }}>
+        {info.icon} {info.text}
+      </span>
+    );
+  };
+
   const renderCard = (s: Signboard) => {
     const { earliest, latest, span } = getEarliestAndLatest(s);
     const latestStatus = getLatestStatus(s.id) || s.condition;
     const statusInfo = conditionStatusLabels[latestStatus];
     const records = getRecordsForSignboard(s.id);
-    const [beforeEvent, afterEvent] = getBeforeAfterEvents(s);
+    const bestTransition = getBestTransition(s);
     const isExpanded = expandedCard === s.id;
 
     return (
@@ -172,22 +260,30 @@ const RestorationArchive: React.FC = () => {
             </div>
           </div>
 
-          {beforeEvent && afterEvent && (
+          {bestTransition && (
             <div className="card-compare-preview" onClick={() => { setSelectedSignboard(s); setViewMode('compare'); }}>
-              <div className="compare-preview-label">修复前后对比</div>
+              <div className="compare-preview-label">
+                {bestTransition.keyMoment === 'damage-repair' && '受损→修复'}
+                {bestTransition.keyMoment === 'wear-repair' && '风化→修缮'}
+                {bestTransition.keyMoment === 'creation-change' && '初制→改制'}
+                {bestTransition.keyMoment === 'gradual' && '阶段变化'}
+              </div>
               <div className="compare-preview-images">
                 <div className="compare-preview-before">
-                  <span className="preview-tag before-tag">{beforeEvent.year}</span>
-                  <div className="preview-status" style={{ color: conditionStatusLabels[beforeEvent.changes?.condition || 'damaged'].color }}>
-                    {conditionStatusLabels[beforeEvent.changes?.condition || 'damaged'].icon} {conditionStatusLabels[beforeEvent.changes?.condition || 'damaged'].text}
-                  </div>
+                  <span className="preview-tag before-tag">{bestTransition.beforeEvent.year}</span>
+                  <div className="preview-event-title">{bestTransition.beforeEvent.title}</div>
+                  {renderConditionBadge(bestTransition.beforeCondition)}
+                  {bestTransition.beforeColors.length > 0 && renderColorStrip(bestTransition.beforeColors)}
                 </div>
-                <div className="compare-preview-arrow">→</div>
+                <div className="compare-preview-arrow">
+                  <span className="arrow-year-gap">{bestTransition.yearGap}年</span>
+                  →
+                </div>
                 <div className="compare-preview-after">
-                  <span className="preview-tag after-tag">{afterEvent.year}</span>
-                  <div className="preview-status" style={{ color: conditionStatusLabels[afterEvent.changes?.condition || 'restored'].color }}>
-                    {conditionStatusLabels[afterEvent.changes?.condition || 'restored'].icon} {conditionStatusLabels[afterEvent.changes?.condition || 'restored'].text}
-                  </div>
+                  <span className="preview-tag after-tag">{bestTransition.afterEvent.year}</span>
+                  <div className="preview-event-title">{bestTransition.afterEvent.title}</div>
+                  {renderConditionBadge(bestTransition.afterCondition)}
+                  {bestTransition.afterColors.length > 0 && renderColorStrip(bestTransition.afterColors)}
                 </div>
               </div>
             </div>
@@ -303,11 +399,282 @@ const RestorationArchive: React.FC = () => {
     </div>
   );
 
+  const renderSingleCompare = (s: Signboard) => {
+    const transitions = getRestorationTransitions(s);
+    if (transitions.length === 0) return null;
+
+    return (
+      <div className="single-compare">
+        <div className="single-compare-header">
+          <h3 className="single-compare-title">
+            {s.name} · 修复历程记录
+          </h3>
+          <button className="close-btn" onClick={() => setSelectedSignboard(null)}>✕</button>
+        </div>
+
+        <div className="record-based-intro">
+          <img src={s.image} alt={s.name} className="record-intro-image" />
+          <div className="record-intro-info">
+            <h4>{s.shopName}</h4>
+            <p>{s.era} · {s.year}年创立 · 📍 {s.location}</p>
+            <p className="record-intro-desc">{s.description}</p>
+            <div className="record-intro-colors">
+              <span className="record-colors-label">招牌配色</span>
+              {renderColorStrip(s.colors)}
+            </div>
+          </div>
+        </div>
+
+        <div className="record-transitions-section">
+          <h4 className="transitions-section-title">📋 状态变化记录（基于{transitions.length}次历史事件）</h4>
+          <div className="transitions-list">
+            {transitions.map((t, idx) => {
+              const beforeInfo = eventTypeLabels[t.beforeEvent.type];
+              const afterInfo = eventTypeLabels[t.afterEvent.type];
+              const momentLabel = t.keyMoment === 'damage-repair' ? '受损后修复'
+                : t.keyMoment === 'wear-repair' ? '风化后修缮'
+                : t.keyMoment === 'creation-change' ? '创立后改制'
+                : '渐进变化';
+
+              return (
+                <div key={idx} className={`transition-card transition-${t.keyMoment}`}>
+                  <div className="transition-moment-tag">{momentLabel}</div>
+                  <div className="transition-body">
+                    <div className="transition-side before-side">
+                      <div className="transition-year">{t.beforeEvent.year}</div>
+                      <div className="transition-event-icon">{beforeInfo.icon}</div>
+                      <div className="transition-event-title">{t.beforeEvent.title}</div>
+                      <div className="transition-event-type">{beforeInfo.label}</div>
+                      <div className="transition-condition">
+                        {renderConditionBadge(t.beforeCondition)}
+                      </div>
+                      {t.beforeColors.length > 0 && (
+                        <div className="transition-colors">
+                          {renderColorStrip(t.beforeColors)}
+                        </div>
+                      )}
+                      <p className="transition-event-desc">{t.beforeEvent.description}</p>
+                    </div>
+
+                    <div className="transition-middle">
+                      <div className="transition-connector" />
+                      <div className="transition-gap-badge">{t.yearGap > 0 ? `${t.yearGap}年` : '同年'}</div>
+                      <div className="transition-connector" />
+                    </div>
+
+                    <div className="transition-side after-side">
+                      <div className="transition-year">{t.afterEvent.year}</div>
+                      <div className="transition-event-icon">{afterInfo.icon}</div>
+                      <div className="transition-event-title">{t.afterEvent.title}</div>
+                      <div className="transition-event-type">{afterInfo.label}</div>
+                      <div className="transition-condition">
+                        {renderConditionBadge(t.afterCondition)}
+                      </div>
+                      {t.afterColors.length > 0 && (
+                        <div className="transition-colors">
+                          {renderColorStrip(t.afterColors)}
+                        </div>
+                      )}
+                      <p className="transition-event-desc">{t.afterEvent.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="record-timeline-section">
+          <h4 className="transitions-section-title">🕐 完整修复时间线</h4>
+          <RestorationTimeline history={s.restorationHistory} />
+        </div>
+      </div>
+    );
+  };
+
+  const renderPairCompare = (a: Signboard, b: Signboard) => {
+    const aDamaged = a.restorationHistory.filter(e => e.type === 'damaged' || e.type === 'weathered');
+    const bDamaged = b.restorationHistory.filter(e => e.type === 'damaged' || e.type === 'weathered');
+    const aRepaired = a.restorationHistory.filter(e => e.type === 'restoration' || e.type === 'renovation' || e.type === 'repaint');
+    const bRepaired = b.restorationHistory.filter(e => e.type === 'restoration' || e.type === 'renovation' || e.type === 'repaint');
+    const aBest = getBestTransition(a);
+    const bBest = getBestTransition(b);
+
+    return (
+      <div className="pair-compare">
+        <div className="pair-compare-header">
+          <h3 className="pair-compare-title">
+            {a.name} VS {b.name}
+          </h3>
+          <button className="close-btn" onClick={() => setComparePair([null, null])}>✕</button>
+        </div>
+
+        <div className="pair-overview">
+          <div className="pair-overview-card">
+            <img src={a.image} alt={a.name} />
+            <h4>{a.name}</h4>
+            <p>{a.era} · {a.year}年</p>
+            <p className="pair-overview-location">📍 {a.location}</p>
+            {renderConditionBadge(a.condition)}
+            {renderColorStrip(a.colors)}
+          </div>
+          <div className="pair-overview-middle">
+            <div className="pair-stat-compare">
+              <div className="pair-stat-row">
+                <span className="pair-stat-val">{a.restorationHistory.length}</span>
+                <span className="pair-stat-lbl">历史事件</span>
+                <span className="pair-stat-val">{b.restorationHistory.length}</span>
+              </div>
+              <div className="pair-stat-row">
+                <span className="pair-stat-val">{aDamaged.length}</span>
+                <span className="pair-stat-lbl">受损/风化</span>
+                <span className="pair-stat-val">{bDamaged.length}</span>
+              </div>
+              <div className="pair-stat-row">
+                <span className="pair-stat-val">{aRepaired.length}</span>
+                <span className="pair-stat-lbl">修缮/重漆</span>
+                <span className="pair-stat-val">{bRepaired.length}</span>
+              </div>
+              <div className="pair-stat-row">
+                <span className="pair-stat-val">{getEarliestAndLatest(a).span}年</span>
+                <span className="pair-stat-lbl">历史跨度</span>
+                <span className="pair-stat-val">{getEarliestAndLatest(b).span}年</span>
+              </div>
+              <div className="pair-stat-row">
+                <span className="pair-stat-val">{a.fontStyle}</span>
+                <span className="pair-stat-lbl">字体风格</span>
+                <span className="pair-stat-val">{b.fontStyle}</span>
+              </div>
+              <div className="pair-stat-row">
+                <span className="pair-stat-val" style={{ color: conditionStatusLabels[a.condition].color }}>
+                  {conditionStatusLabels[a.condition].text}
+                </span>
+                <span className="pair-stat-lbl">当前状态</span>
+                <span className="pair-stat-val" style={{ color: conditionStatusLabels[b.condition].color }}>
+                  {conditionStatusLabels[b.condition].text}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="pair-overview-card">
+            <img src={b.image} alt={b.name} />
+            <h4>{b.name}</h4>
+            <p>{b.era} · {b.year}年</p>
+            <p className="pair-overview-location">📍 {b.location}</p>
+            {renderConditionBadge(b.condition)}
+            {renderColorStrip(b.colors)}
+          </div>
+        </div>
+
+        <div className="pair-key-moments">
+          <h4 className="transitions-section-title">🔑 关键转折对比</h4>
+          <div className="key-moments-grid">
+            <div className="key-moment-card">
+              <div className="key-moment-header">
+                <span className="key-moment-name">{a.name}</span>
+                <span className="key-moment-label">最显著变化</span>
+              </div>
+              {aBest ? (
+                <div className="key-moment-body">
+                  <div className="key-moment-before">
+                    <span className="key-moment-year">{aBest.beforeEvent.year}</span>
+                    <span className="key-moment-title">{aBest.beforeEvent.title}</span>
+                    {renderConditionBadge(aBest.beforeCondition)}
+                  </div>
+                  <div className="key-moment-arrow">→ {aBest.yearGap}年 →</div>
+                  <div className="key-moment-after">
+                    <span className="key-moment-year">{aBest.afterEvent.year}</span>
+                    <span className="key-moment-title">{aBest.afterEvent.title}</span>
+                    {renderConditionBadge(aBest.afterCondition)}
+                  </div>
+                  <p className="key-moment-desc">{aBest.afterEvent.description}</p>
+                </div>
+              ) : (
+                <p className="key-moment-empty">暂无足够记录</p>
+              )}
+            </div>
+            <div className="key-moment-card">
+              <div className="key-moment-header">
+                <span className="key-moment-name">{b.name}</span>
+                <span className="key-moment-label">最显著变化</span>
+              </div>
+              {bBest ? (
+                <div className="key-moment-body">
+                  <div className="key-moment-before">
+                    <span className="key-moment-year">{bBest.beforeEvent.year}</span>
+                    <span className="key-moment-title">{bBest.beforeEvent.title}</span>
+                    {renderConditionBadge(bBest.beforeCondition)}
+                  </div>
+                  <div className="key-moment-arrow">→ {bBest.yearGap}年 →</div>
+                  <div className="key-moment-after">
+                    <span className="key-moment-year">{bBest.afterEvent.year}</span>
+                    <span className="key-moment-title">{bBest.afterEvent.title}</span>
+                    {renderConditionBadge(bBest.afterCondition)}
+                  </div>
+                  <p className="key-moment-desc">{bBest.afterEvent.description}</p>
+                </div>
+              ) : (
+                <p className="key-moment-empty">暂无足够记录</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="pair-history-compare">
+          <h4 className="transitions-section-title">📜 修复历程对照</h4>
+          <div className="history-compare-table">
+            <div className="history-compare-row header-row">
+              <div className="history-col">{a.name}</div>
+              <div className="history-col-center">年份</div>
+              <div className="history-col">{b.name}</div>
+            </div>
+            {(() => {
+              const maxLen = Math.max(a.restorationHistory.length, b.restorationHistory.length);
+              const rows = [];
+              for (let i = 0; i < maxLen; i++) {
+                const aEvent = a.restorationHistory[i];
+                const bEvent = b.restorationHistory[i];
+                rows.push(
+                  <div key={i} className="history-compare-row">
+                    <div className={`history-col ${aEvent ? `event-type-${aEvent.type}` : 'empty'}`}>
+                      {aEvent ? (
+                        <>
+                          <span className="history-event-icon">{eventTypeLabels[aEvent.type].icon}</span>
+                          <span className="history-event-title">{aEvent.title}</span>
+                          {aEvent.changes?.condition && renderConditionBadge(aEvent.changes.condition)}
+                        </>
+                      ) : <span className="history-empty">—</span>}
+                    </div>
+                    <div className="history-col-center">
+                      <span className="history-year-a">{aEvent?.year || '—'}</span>
+                      <span className="history-year-sep">/</span>
+                      <span className="history-year-b">{bEvent?.year || '—'}</span>
+                    </div>
+                    <div className={`history-col ${bEvent ? `event-type-${bEvent.type}` : 'empty'}`}>
+                      {bEvent ? (
+                        <>
+                          <span className="history-event-icon">{eventTypeLabels[bEvent.type].icon}</span>
+                          <span className="history-event-title">{bEvent.title}</span>
+                          {bEvent.changes?.condition && renderConditionBadge(bEvent.changes.condition)}
+                        </>
+                      ) : <span className="history-empty">—</span>}
+                    </div>
+                  </div>
+                );
+              }
+              return rows;
+            })()}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderCompareView = () => (
     <div className="compare-view">
       {!selectedSignboard && !comparePair[0] && !comparePair[1] && (
         <div className="compare-selector">
-          <h3 className="compare-selector-title">选择两块招牌进行修复前后对比</h3>
+          <h3 className="compare-selector-title">选择招牌查看修复记录，或选择两块招牌进行对比</h3>
           <div className="compare-pair-selector">
             <div
               className={`compare-slot ${comparePair[0] ? 'filled' : ''}`}
@@ -320,7 +687,7 @@ const RestorationArchive: React.FC = () => {
                 </>
               )}
               {!comparePair[0] && (
-                <span className="compare-slot-placeholder">选择招牌 A</span>
+                <span className="compare-slot-placeholder">选择招牌 A<br /><small>点击下方招牌可单独查看</small></span>
               )}
             </div>
             <div className="compare-vs">VS</div>
@@ -335,7 +702,7 @@ const RestorationArchive: React.FC = () => {
                 </>
               )}
               {!comparePair[1] && (
-                <span className="compare-slot-placeholder">选择招牌 B</span>
+                <span className="compare-slot-placeholder">选择招牌 B<br /><small>可选，留空查看单招牌</small></span>
               )}
             </div>
           </div>
@@ -354,155 +721,24 @@ const RestorationArchive: React.FC = () => {
                   } else if (!comparePair[1]) {
                     setComparePair([comparePair[0], s]);
                   } else {
-                    setComparePair([s, null]);
+                    setSelectedSignboard(s);
                   }
                 }}
               >
                 <img src={s.image} alt={s.name} />
                 <span className="selector-item-name">{s.name}</span>
-                <span className="selector-item-year">{s.year}年</span>
+                <span className="selector-item-year">{s.year}年 · {s.restorationHistory.length}次记录</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {selectedSignboard && (
-        <div className="single-compare">
-          <div className="single-compare-header">
-            <h3 className="single-compare-title">
-              {selectedSignboard.name} - 修复前后对比
-            </h3>
-            <button className="close-btn" onClick={() => setSelectedSignboard(null)}>✕</button>
-          </div>
-          
-          <div className="slider-compare-container">
-            <div className="slider-compare">
-              <div className="compare-image-layer after-layer">
-                <img src={selectedSignboard.image} alt="修复后" />
-                <div className="compare-label after-label">
-                  修复后 · {getBeforeAfterEvents(selectedSignboard)[1]?.year || selectedSignboard.year}年
-                </div>
-              </div>
-              <div
-                className="compare-image-layer before-layer"
-                style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-              >
-                <div className="before-image-overlay">
-                  <img src={selectedSignboard.image} alt="修复前" className="grayscale-image" />
-                </div>
-                <div className="compare-label before-label">
-                  修复前 · {getBeforeAfterEvents(selectedSignboard)[0]?.year || selectedSignboard.year}年
-                </div>
-              </div>
-              <div
-                className="compare-slider-handle"
-                style={{ left: `${sliderPosition}%` }}
-              >
-                <div className="slider-line" />
-                <div className="slider-button">
-                  <span className="slider-arrow left">◀</span>
-                  <span className="slider-arrow right">▶</span>
-                </div>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={sliderPosition}
-                onChange={(e) => setSliderPosition(Number(e.target.value))}
-                className="compare-range-input"
-              />
-            </div>
-          </div>
+      {selectedSignboard && !comparePair[0] && !comparePair[1] && renderSingleCompare(selectedSignboard)}
 
-          <div className="single-compare-events">
-            <div className="compare-events-grid">
-              {selectedSignboard.restorationHistory.map((event, idx) => (
-                <div
-                  key={idx}
-                  className={`compare-event-card ${event.type === 'damaged' ? 'damaged' : event.type === 'restoration' ? 'restoration' : ''}`}
-                >
-                  <div className="event-card-header">
-                    <span className="event-card-year">{event.year}</span>
-                    <span className="event-card-type">{event.title}</span>
-                  </div>
-                  <p className="event-card-desc">{event.description}</p>
-                  {event.changes?.condition && (
-                    <div className="event-card-condition">
-                      状态：{conditionStatusLabels[event.changes.condition].icon} {conditionStatusLabels[event.changes.condition].text}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {comparePair[0] && !comparePair[1] && renderSingleCompare(comparePair[0] as Signboard)}
 
-      {comparePair[0] && comparePair[1] && !selectedSignboard && (
-        <div className="pair-compare">
-          <div className="pair-compare-header">
-            <h3 className="pair-compare-title">
-              {comparePair[0].name} VS {comparePair[1].name}
-            </h3>
-            <button className="close-btn" onClick={() => setComparePair([null, null])}>✕</button>
-          </div>
-
-          <div className="pair-compare-grid">
-            <div className="pair-compare-card">
-              <img src={comparePair[0].image} alt={comparePair[0].name} />
-              <h4>{comparePair[0].name}</h4>
-              <p>{comparePair[0].shopName}</p>
-              <div className="pair-meta">
-                <span>创立：{comparePair[0].year}年</span>
-                <span>📍 {comparePair[0].location}</span>
-              </div>
-              <RestorationTimeline history={comparePair[0].restorationHistory} compact />
-            </div>
-            
-            <div className="pair-compare-middle">
-              <div className="compare-stats-column">
-                <div className="compare-stat-row">
-                  <span className="stat-value">{comparePair[0].restorationHistory.length}</span>
-                  <span className="stat-label">修复次数</span>
-                  <span className="stat-value">{comparePair[1].restorationHistory.length}</span>
-                </div>
-                <div className="compare-stat-row">
-                  <span className="stat-value">{getEarliestAndLatest(comparePair[0]).span}年</span>
-                  <span className="stat-label">历史跨度</span>
-                  <span className="stat-value">{getEarliestAndLatest(comparePair[1]).span}年</span>
-                </div>
-                <div className="compare-stat-row">
-                  <span className="stat-value" style={{ color: conditionStatusLabels[comparePair[0].condition].color }}>
-                    {conditionStatusLabels[comparePair[0].condition].text}
-                  </span>
-                  <span className="stat-label">当前状态</span>
-                  <span className="stat-value" style={{ color: conditionStatusLabels[comparePair[1].condition].color }}>
-                    {conditionStatusLabels[comparePair[1].condition].text}
-                  </span>
-                </div>
-                <div className="compare-stat-row">
-                  <span className="stat-value">{comparePair[0].fontStyle}</span>
-                  <span className="stat-label">字体风格</span>
-                  <span className="stat-value">{comparePair[1].fontStyle}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="pair-compare-card">
-              <img src={comparePair[1].image} alt={comparePair[1].name} />
-              <h4>{comparePair[1].name}</h4>
-              <p>{comparePair[1].shopName}</p>
-              <div className="pair-meta">
-                <span>创立：{comparePair[1].year}年</span>
-                <span>📍 {comparePair[1].location}</span>
-              </div>
-              <RestorationTimeline history={comparePair[1].restorationHistory} compact />
-            </div>
-          </div>
-        </div>
-      )}
+      {comparePair[0] && comparePair[1] && !selectedSignboard && renderPairCompare(comparePair[0] as Signboard, comparePair[1] as Signboard)}
     </div>
   );
 
