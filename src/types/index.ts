@@ -471,3 +471,68 @@ export interface CalendarContextType {
   saveMonthlyNote: (year: number, month: number, note: string) => void;
   getMonthlyNote: (year: number, month: number) => string;
 }
+
+export interface ResearchNote {
+  id: string;
+  signboardId?: string;
+  title: string;
+  content: string;
+  tags: string[];
+  category: '年代分析' | '色彩对照' | '样本筛查' | '综合研究';
+  createdAt: number;
+  updatedAt: number;
+  relatedSignboardIds: string[];
+}
+
+export interface SampleFilterCriteria {
+  yearRange: [number, number] | null;
+  eras: string[];
+  fontStyles: string[];
+  conditions: ConditionStatus[];
+  colors: string[];
+  tags: string[];
+  locations: string[];
+  hasRestoration: boolean | null;
+  buildingTypes: string[];
+}
+
+export interface ColorComparisonGroup {
+  id: string;
+  name: string;
+  description: string;
+  signboardIds: string[];
+  createdAt: number;
+}
+
+export interface EraAnalysisSnapshot {
+  id: string;
+  name: string;
+  eraStageId: string;
+  description: string;
+  observations: string;
+  signboardIds: string[];
+  createdAt: number;
+}
+
+export interface ResearchLabContextType {
+  notes: ResearchNote[];
+  colorGroups: ColorComparisonGroup[];
+  eraSnapshots: EraAnalysisSnapshot[];
+  activeFilter: SampleFilterCriteria;
+  addNote: (data: Omit<ResearchNote, 'id' | 'createdAt' | 'updatedAt'>) => ResearchNote;
+  updateNote: (id: string, updates: Partial<Omit<ResearchNote, 'id' | 'createdAt'>>) => void;
+  deleteNote: (id: string) => void;
+  getNote: (id: string) => ResearchNote | undefined;
+  getNotesByCategory: (category: ResearchNote['category']) => ResearchNote[];
+  getNotesForSignboard: (signboardId: string) => ResearchNote[];
+  addColorGroup: (data: Omit<ColorComparisonGroup, 'id' | 'createdAt'>) => ColorComparisonGroup;
+  updateColorGroup: (id: string, updates: Partial<Omit<ColorComparisonGroup, 'id' | 'createdAt'>>) => void;
+  deleteColorGroup: (id: string) => void;
+  toggleSignboardInColorGroup: (groupId: string, signboardId: string) => void;
+  addEraSnapshot: (data: Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>) => EraAnalysisSnapshot;
+  updateEraSnapshot: (id: string, updates: Partial<Omit<EraAnalysisSnapshot, 'id' | 'createdAt'>>) => void;
+  deleteEraSnapshot: (id: string) => void;
+  setActiveFilter: (filter: Partial<SampleFilterCriteria>) => void;
+  resetActiveFilter: () => void;
+  filterSignboards: (signboards: Signboard[], criteria: SampleFilterCriteria) => Signboard[];
+}

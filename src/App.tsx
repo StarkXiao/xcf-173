@@ -8,6 +8,7 @@ import { SignboardsProvider } from './context/SignboardsContext';
 import { FontEvolutionProvider } from './context/FontEvolutionContext';
 import { CityMemoryProvider } from './context/CityMemoryContext';
 import { CalendarProvider } from './context/CalendarContext';
+import { ResearchLabProvider } from './context/ResearchLabContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
@@ -26,6 +27,7 @@ import FontEvolution from './pages/FontEvolution';
 import FontFamilyDetail from './pages/FontFamilyDetail';
 import CityMemory from './pages/CityMemory';
 import SignboardCalendar from './pages/SignboardCalendar';
+import SignboardResearchLab from './pages/SignboardResearchLab';
 
 function App() {
   return (
@@ -38,6 +40,7 @@ function App() {
                 <StatusTrackingProvider>
                   <CityMemoryProvider>
                     <CalendarProvider>
+                      <ResearchLabProvider>
                       <BrowserRouter>
                         <div className="app">
                           <Navbar />
@@ -60,10 +63,12 @@ function App() {
                               <Route path="/font-evolution" element={<FontEvolution />} />
                               <Route path="/font-evolution/:id" element={<FontFamilyDetail />} />
                               <Route path="/city-memory" element={<CityMemory />} />
+                              <Route path="/research-lab" element={<SignboardResearchLab />} />
                             </Routes>
                           </main>
                         </div>
                       </BrowserRouter>
+                      </ResearchLabProvider>
                     </CalendarProvider>
                   </CityMemoryProvider>
                 </StatusTrackingProvider>

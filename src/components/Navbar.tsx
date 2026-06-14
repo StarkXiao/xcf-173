@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
+import { useResearchLab } from '../context/ResearchLabContext';
 import type { ThemeMode } from '../types';
 import './Navbar.css';
 
@@ -10,6 +11,7 @@ const Navbar: React.FC = () => {
   const { theme, setTheme, autoTheme, setAutoTheme, activeSignboardId } = useTheme();
   const { compareList, reportList } = useFavorites();
   const { collections } = useCollections();
+  const { notes } = useResearchLab();
   const totalInCollections = collections.reduce((sum, c) => sum + c.items.length, 0);
 
   const themeOptions: { value: ThemeMode; label: string; icon: string }[] = [
@@ -62,6 +64,11 @@ const Navbar: React.FC = () => {
           <NavLink to="/city-memory" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">📜</span>
             <span>城市记忆</span>
+          </NavLink>
+          <NavLink to="/research-lab" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">🔬</span>
+            <span>研究室</span>
+            {notes.length > 0 && <span className="nav-badge">{notes.length}</span>}
           </NavLink>
           <NavLink to="/compare" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">⚖️</span>
