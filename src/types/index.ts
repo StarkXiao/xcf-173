@@ -551,3 +551,79 @@ export interface ResearchLabContextType {
   resetActiveFilter: () => void;
   filterSignboards: (signboards: Signboard[], criteria: SampleFilterCriteria, favoriteIds?: string[], collectionMap?: Map<string, string[]>) => Signboard[];
 }
+
+export type RankingCategory = 'block' | 'style' | 'heat';
+export type RankingTimeRange = 'weekly' | 'monthly' | 'allTime';
+
+export interface StreetCorner {
+  id: string;
+  name: string;
+  district: string;
+  city: string;
+  description: string;
+  coverImage: string;
+  signboardIds: string[];
+  tags: string[];
+  atmosphere: string;
+  bestTimeToVisit: string;
+  nearbyLandmarks: string[];
+  latitude: number;
+  longitude: number;
+}
+
+export interface StyleCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  signboardIds: string[];
+  fontStyles: string[];
+  eras: string[];
+}
+
+export interface RankingItem {
+  rank: number;
+  signboardId: string;
+  score: number;
+  trend: 'up' | 'down' | 'stable';
+  trendValue: number;
+  heatSources: string[];
+}
+
+export interface RankingList {
+  id: string;
+  title: string;
+  category: RankingCategory;
+  timeRange: RankingTimeRange;
+  subtitle: string;
+  description: string;
+  icon: string;
+  accentColor: string;
+  coverImage: string;
+  items: RankingItem[];
+  streetCornerId?: string;
+  styleCategoryId?: string;
+  updatedAt: string;
+  totalItems: number;
+}
+
+export interface StreetCornerContextType {
+  streetCorners: StreetCorner[];
+  styleCategories: StyleCategory[];
+  rankingLists: RankingList[];
+  favoriteRankingLists: string[];
+  favoriteStreetCorners: string[];
+  toggleFavoriteRankingList: (id: string) => void;
+  toggleFavoriteStreetCorner: (id: string) => void;
+  isRankingListFavorite: (id: string) => boolean;
+  isStreetCornerFavorite: (id: string) => boolean;
+  getStreetCorner: (id: string) => StreetCorner | undefined;
+  getStyleCategory: (id: string) => StyleCategory | undefined;
+  getRankingList: (id: string) => RankingList | undefined;
+  getRankingsByCategory: (category: RankingCategory) => RankingList[];
+  getRankingsByTimeRange: (timeRange: RankingTimeRange) => RankingList[];
+  getStreetCornersByCity: (city: string) => StreetCorner[];
+  getAllCities: () => string[];
+  getSignboardRankingInfo: (signboardId: string) => { list: RankingList; item: RankingItem }[];
+}

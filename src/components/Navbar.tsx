@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import { useResearchLab } from '../context/ResearchLabContext';
+import { useStreetCorner } from '../context/StreetCornerContext';
 import type { ThemeMode } from '../types';
 import './Navbar.css';
 
@@ -12,7 +13,9 @@ const Navbar: React.FC = () => {
   const { compareList, reportList } = useFavorites();
   const { collections } = useCollections();
   const { notes } = useResearchLab();
+  const { favoriteRankingLists, favoriteStreetCorners } = useStreetCorner();
   const totalInCollections = collections.reduce((sum, c) => sum + c.items.length, 0);
+  const totalFavStreetCorner = favoriteRankingLists.length + favoriteStreetCorners.length;
 
   const themeOptions: { value: ThemeMode; label: string; icon: string }[] = [
     { value: 'sepia', label: '怀旧棕', icon: '📜' },
@@ -51,6 +54,11 @@ const Navbar: React.FC = () => {
           <NavLink to="/map-atlas" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">🗺️</span>
             <span>地图册</span>
+          </NavLink>
+          <NavLink to="/streetcorner" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">🏆</span>
+            <span>街角发现榜</span>
+            {totalFavStreetCorner > 0 && <span className="nav-badge">{totalFavStreetCorner}</span>}
           </NavLink>
           <NavLink to="/favorites" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">📚</span>

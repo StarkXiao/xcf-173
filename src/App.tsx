@@ -9,6 +9,7 @@ import { FontEvolutionProvider } from './context/FontEvolutionContext';
 import { CityMemoryProvider } from './context/CityMemoryContext';
 import { CalendarProvider } from './context/CalendarContext';
 import { ResearchLabProvider } from './context/ResearchLabContext';
+import { StreetCornerProvider } from './context/StreetCornerContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
@@ -29,6 +30,8 @@ import CityMemory from './pages/CityMemory';
 import SignboardCalendar from './pages/SignboardCalendar';
 import SignboardResearchLab from './pages/SignboardResearchLab';
 import RestorationArchive from './pages/RestorationArchive';
+import StreetCornerRanking from './pages/StreetCornerRanking';
+import StreetCornerDetail from './pages/StreetCornerDetail';
 
 function App() {
   return (
@@ -42,6 +45,7 @@ function App() {
                   <CityMemoryProvider>
                     <CalendarProvider>
                       <ResearchLabProvider>
+                        <StreetCornerProvider>
                       <BrowserRouter>
                         <div className="app">
                           <Navbar />
@@ -66,10 +70,14 @@ function App() {
                               <Route path="/city-memory" element={<CityMemory />} />
                               <Route path="/research-lab" element={<SignboardResearchLab />} />
                               <Route path="/restoration-archive" element={<RestorationArchive />} />
+                              <Route path="/streetcorner" element={<StreetCornerRanking />} />
+                              <Route path="/streetcorner/ranking/:rankingId" element={<StreetCornerDetail />} />
+                              <Route path="/streetcorner/corner/:cornerId" element={<StreetCornerDetail />} />
                             </Routes>
                           </main>
                         </div>
                       </BrowserRouter>
+                        </StreetCornerProvider>
                       </ResearchLabProvider>
                     </CalendarProvider>
                   </CityMemoryProvider>
