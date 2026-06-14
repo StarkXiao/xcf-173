@@ -35,8 +35,12 @@ const Navbar: React.FC = () => {
             <span>全部招牌</span>
           </NavLink>
           <NavLink to="/roaming" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
-            <span className="nav-icon">🗺️</span>
+            <span className="nav-icon">🚶</span>
             <span>城市漫游</span>
+          </NavLink>
+          <NavLink to="/map-atlas" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">🗺️</span>
+            <span>地图册</span>
           </NavLink>
           <NavLink to="/favorites" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">📚</span>

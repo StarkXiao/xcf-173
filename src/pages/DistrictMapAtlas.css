@@ -1,0 +1,1272 @@
+.atlas-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.atlas-hero {
+  position: relative;
+  padding: 3.5rem 0 2.5rem;
+  text-align: center;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 2rem;
+}
+
+.atlas-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.atlas-grid-pattern {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(139, 69, 19, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 69, 19, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.atlas-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.atlas-hero-badge {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  background: linear-gradient(135deg, #8B4513, #DAA520);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.2rem;
+}
+
+.atlas-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.8rem;
+}
+
+.atlas-hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.atlas-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.atlas-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.atlas-stat-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.atlas-stat-num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.atlas-stat-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.atlas-stat-divider {
+  width: 1px;
+  height: 40px;
+  background-color: var(--border-color);
+}
+
+.atlas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+  flex-wrap: wrap;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.toolbar-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.city-chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.city-chip {
+  padding: 0.45rem 0.9rem;
+  border: 2px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.city-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.city-chip.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  font-weight: 600;
+}
+
+.view-toggle {
+  display: flex;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+  border-right: 1px solid var(--border-color);
+}
+
+.view-btn:last-child {
+  border-right: none;
+}
+
+.view-btn:hover {
+  background-color: var(--bg-secondary);
+  color: var(--primary-color);
+}
+
+.view-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.view-icon {
+  font-size: 1rem;
+}
+
+.fav-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  transition: all 0.25s ease;
+  font-weight: 500;
+}
+
+.fav-filter-btn:hover {
+  border-color: #C62828;
+  color: #C62828;
+}
+
+.fav-filter-btn.active {
+  background-color: #C62828;
+  color: white;
+  border-color: #C62828;
+  font-weight: 600;
+}
+
+.map-view-section {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.map-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.china-map-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.city-marker-group {
+  cursor: pointer;
+}
+
+.city-pulse-ring {
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    opacity: 0.3;
+    r: 28;
+  }
+  50% {
+    opacity: 0.6;
+    r: 34;
+  }
+}
+
+.city-main-dot {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition: r 0.25s ease;
+}
+
+.city-marker-group:hover .city-main-dot {
+  r: 22;
+}
+
+.district-marker {
+  transition: transform 0.25s ease;
+}
+
+.district-marker:hover {
+  transform: scale(1.15);
+  transform-origin: center;
+}
+
+.district-dot {
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+  transition: all 0.25s ease;
+}
+
+.district-marker:hover .district-dot {
+  stroke-width: 3;
+}
+
+.map-legend {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+
+.legend-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot.city-dot {
+  background-color: #8B4513;
+}
+
+.legend-dot.district-dot {
+  background-color: #DAA520;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.legend-icon {
+  font-size: 1rem;
+}
+
+.legend-tip {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-top: 0.8rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.grid-view-section {
+  margin-bottom: 2rem;
+}
+
+.district-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.district-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+}
+
+.district-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
+}
+
+.district-card-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+
+.district-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.district-card:hover .district-card-image img {
+  transform: scale(1.08);
+}
+
+.district-card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+  color: white;
+}
+
+.district-card-city {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+  opacity: 0.9;
+}
+
+.district-card-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.district-card-count {
+  display: flex;
+  gap: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.district-card-body {
+  padding: 1.25rem;
+}
+
+.district-card-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.district-card-landmarks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.district-landmark-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  border-radius: 12px;
+}
+
+.district-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.district-card-enter {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.district-card-routes {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cluster-view-section {
+  margin-bottom: 2rem;
+}
+
+.cluster-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 0.85rem 1.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.cluster-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cluster-toggle {
+  display: flex;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.cluster-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+  border-right: 1px solid var(--border-color);
+}
+
+.cluster-btn:last-child {
+  border-right: none;
+}
+
+.cluster-btn:hover {
+  background-color: var(--bg-secondary);
+}
+
+.cluster-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.cluster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+.cluster-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.cluster-card.expanded {
+  border-color: var(--primary-color);
+}
+
+.cluster-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+
+.cluster-card-header:hover {
+  background-color: var(--bg-secondary);
+}
+
+.cluster-title-wrap {
+  flex: 1;
+}
+
+.cluster-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.2rem;
+}
+
+.cluster-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cluster-preview {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.cluster-preview-item {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.cluster-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cluster-preview-more {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 2px solid var(--border-color);
+}
+
+.cluster-expand-icon {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.cluster-card-content {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.cluster-signboards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.cluster-signboard-item {
+  min-width: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.empty-state p {
+  font-size: 1rem;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-btn {
+  padding: 0.55rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  transition: all 0.25s ease;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.back-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.detail-title-wrap {
+  flex: 1;
+}
+
+.detail-breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.breadcrumb-sep {
+  margin: 0 0.4rem;
+  color: var(--border-color);
+}
+
+.breadcrumb-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: var(--primary-color);
+}
+
+.detail-breadcrumb .current {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.detail-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+.detail-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.route-detail-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+
+.route-detail-meta span {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.7rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: 12px;
+}
+
+.district-info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.info-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.info-card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.2rem;
+}
+
+.info-card-num {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.info-card-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.info-card-landmarks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-top: 0.4rem;
+}
+
+.landmark-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-radius: 10px;
+}
+
+.district-section {
+  margin-bottom: 2.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.section-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.signboards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.route-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+}
+
+.route-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
+}
+
+.route-card-image {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.route-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.route-card:hover .route-card-image img {
+  transform: scale(1.05);
+}
+
+.route-card-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.route-card-body {
+  padding: 1.25rem;
+}
+
+.route-card-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.route-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 0.85rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.route-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.route-meta-item {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0.2rem 0.55rem;
+  background-color: var(--bg-secondary);
+  border-radius: 6px;
+}
+
+.route-card-stops-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.route-stop-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  position: relative;
+}
+
+.route-stop-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.route-stop-line {
+  position: absolute;
+  left: 4px;
+  top: 14px;
+  width: 2px;
+  height: calc(100% + 0.5rem);
+  background-color: var(--border-color);
+}
+
+.route-stop-name {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.route-card-enter {
+  width: 100%;
+  padding: 0.65rem;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.route-card-enter:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.route-map-visual {
+  position: relative;
+  padding-left: 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.route-map-line {
+  position: absolute;
+  left: 14px;
+  top: 1rem;
+  bottom: 1rem;
+  width: 4px;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+.route-stop-card {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.route-stop-card:last-child {
+  margin-bottom: 0;
+}
+
+.route-stop-marker {
+  position: absolute;
+  left: -3rem;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stop-marker-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--bg-card);
+  border: 4px solid;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.stop-marker-connector {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: calc(100% + 2rem);
+  border-left: 2px dashed;
+  opacity: 0.5;
+}
+
+.stop-marker-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+  white-space: nowrap;
+}
+
+.route-stop-content {
+  display: flex;
+  gap: 1.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+}
+
+.route-stop-content:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-color);
+}
+
+.route-stop-image-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.route-stop-image {
+  width: 140px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.route-stop-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.route-stop-content:hover .route-stop-image img {
+  transform: scale(1.05);
+}
+
+.route-stop-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.route-stop-name-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.route-stop-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.4rem;
+}
+
+.route-stop-note {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.route-stop-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.route-stop-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-muted);
+  border-radius: 4px;
+}
+
+.route-stop-colors {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.stop-color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.route-stop-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.stop-detail-btn {
+  padding: 0.45rem 0.9rem;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.stop-detail-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.stop-fav-btn {
+  padding: 0.45rem 0.9rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.stop-fav-btn:hover {
+  border-color: #C62828;
+  color: #C62828;
+}
+
+.stop-fav-btn.active {
+  background-color: #C62828;
+  color: white;
+  border-color: #C62828;
+  font-weight: 600;
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .map-view-section {
+    grid-template-columns: 1fr;
+  }
+
+  .map-legend {
+    order: -1;
+  }
+
+  .detail-header {
+    flex-direction: column;
+  }
+
+  .route-stop-content {
+    flex-direction: column;
+  }
+
+  .route-stop-image {
+    width: 100%;
+    height: 160px;
+  }
+}
+
+@media (max-width: 600px) {
+  .atlas-page {
+    padding: 0 1rem 2rem;
+  }
+
+  .atlas-hero {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .atlas-hero-title {
+    font-size: 1.8rem;
+  }
+
+  .atlas-stats {
+    gap: 0.8rem;
+  }
+
+  .atlas-stat-num {
+    font-size: 1.4rem;
+  }
+
+  .atlas-stat-divider {
+    display: none;
+  }
+
+  .atlas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-left,
+  .toolbar-center,
+  .toolbar-right {
+    justify-content: center;
+  }
+
+  .view-btn span:last-child {
+    display: none;
+  }
+
+  .district-grid,
+  .routes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cluster-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .signboards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .route-map-visual {
+    padding-left: 2rem;
+  }
+
+  .stop-marker-label {
+    display: none;
+  }
+
+  .district-info-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

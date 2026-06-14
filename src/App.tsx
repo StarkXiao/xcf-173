@@ -13,6 +13,7 @@ import Compare from './pages/Compare';
 import CompareReport from './pages/CompareReport';
 import CollectionDetail from './pages/CollectionDetail';
 import CityRoaming from './pages/CityRoaming';
+import DistrictMapAtlas from './pages/DistrictMapAtlas';
 import EditorPage from './pages/EditorPage';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
                         <Route path="/compare-report" element={<CompareReport />} />
                         <Route path="/collection/:id" element={<CollectionDetail />} />
                         <Route path="/roaming" element={<CityRoaming />} />
+                        <Route path="/map-atlas" element={<DistrictMapAtlas />} />
                         <Route path="/editor" element={<EditorPage />} />
                       </Routes>
                     </main>
