@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { getEraStageByYear } from '../types';
 import './CompareReport.css';
@@ -65,6 +65,7 @@ const getEraDiff = (year1: number, year2: number): { label: string; years: numbe
 type ReportStep = 'select' | 'result';
 
 const CompareReport: React.FC = () => {
+  const { signboards } = useSignboards();
   const { getFavoriteSignboards, toggleReport, clearReport, reportList, maxReport, getReportSignboards, setReportList } = useFavorites();
   const [step, setStep] = useState<ReportStep>('select');
   const favoriteSignboards = getFavoriteSignboards(signboards);

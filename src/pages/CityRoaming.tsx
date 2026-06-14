@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { signboards } from '../data/signboards';
 import { districts, routes, getCities, getRoutesByDistrict } from '../data/roaming';
 import type { District, Route, RelayItem, RoamingTheme } from '../types';
 import { roamingThemeConfig } from '../types';
+import { useSignboards } from '../context/SignboardsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import './CityRoaming.css';
-
-const getSignboardById = (id: string) => signboards.find(s => s.id === id);
 
 const difficultyLabels: Record<Route['difficulty'], { text: string; icon: string }> = {
   easy: { text: '轻松漫步', icon: '🚶' },
@@ -17,6 +15,7 @@ const difficultyLabels: Record<Route['difficulty'], { text: string; icon: string
 };
 
 const CityRoaming: React.FC = () => {
+  const { signboards, getSignboard } = useSignboards();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { createCollection, addToCollection } = useCollections();
 
@@ -47,7 +46,7 @@ const CityRoaming: React.FC = () => {
     return selectedRoute.stops
       .sort((a, b) => a.order - b.order)
       .map(stop => {
-        const sb = getSignboardById(stop.signboardId);
+        const sb = getSignboard(stop.signboardId);
         return sb ? { signboard: sb, note: stop.note, order: stop.order } : null;
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -74,7 +73,7 @@ const CityRoaming: React.FC = () => {
   const relaySignboards = useMemo(() => {
     return relayItems
       .map(r => {
-        const sb = getSignboardById(r.signboardId);
+        const sb = getSignboard(r.signboardId);
         return sb ? { signboard: sb, note: r.note, collectedAt: r.collectedAt } : null;
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -283,7 +282,7 @@ const CityRoaming: React.FC = () => {
             <h4 className="preview-title">街区招牌一览</h4>
             <div className="preview-list">
               {selectedDistrict.signboardIds.map(id => {
-                const sb = getSignboardById(id);
+                const sb = getSignboard(id);
                 if (!sb) return null;
                 return (
                   <Link key={id} to={`/signboard/${id}`} className="preview-card">
@@ -324,7 +323,7 @@ const CityRoaming: React.FC = () => {
                   </div>
                   <div className="route-card-stops-preview">
                     {route.stops.sort((a, b) => a.order - b.order).map((stop, sIdx) => {
-                      const sb = getSignboardById(stop.signboardId);
+                      const sb = getSignboard(stop.signboardId);
                       return (
                         <div key={stop.signboardId} className="route-stop-mini">
                           <span className="route-stop-dot" />
@@ -443,7 +442,7 @@ const CityRoaming: React.FC = () => {
               </div>
               <div className="relay-summary-list">
                 {relayItems.map((r, idx) => {
-                  const sb = getSignboardById(r.signboardId);
+                  const sb = getSignboard(r.signboardId);
                   if (!sb) return null;
                   return (
                     <div key={r.signboardId} className="relay-summary-item">

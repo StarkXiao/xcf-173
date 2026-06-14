@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useCollections } from '../context/CollectionsContext';
 import { useOralArchives } from '../context/OralArchivesContext';
@@ -17,6 +17,7 @@ type ViewMode = 'grid' | 'timeline' | 'grouped' | 'collections' | 'oral-archives
 
 const Favorites: React.FC = () => {
   const navigate = useNavigate();
+  const { signboards } = useSignboards();
   const { getFavoriteSignboards, favorites } = useFavorites();
   const { collections, deleteCollection } = useCollections();
   const { archives, saveArchive, deleteArchive, getArchive } = useOralArchives();

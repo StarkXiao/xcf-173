@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import type { Signboard } from '../types';
 import { getEraStageByYear } from '../types';
@@ -98,6 +98,7 @@ const getColorRole = (index: number, total: number): string => {
 };
 
 const Compare: React.FC = () => {
+  const { signboards } = useSignboards();
   const { getCompareSignboards, toggleCompare, clearCompare, compareList } = useFavorites();
   const compareSignboards = getCompareSignboards(signboards);
 

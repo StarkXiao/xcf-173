@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { Filters } from '../types';
 import { eraStages } from '../types';
-import { eras, fontStyles, conditions, allTags } from '../data/signboards';
+import { conditions } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import './Filter.css';
 
 interface FilterProps {
@@ -12,6 +13,11 @@ interface FilterProps {
 }
 
 const Filter: React.FC<FilterProps> = ({ filters, onChange, onReset, resultCount }) => {
+  const { getAllTags, getAllEras, getAllFontStyles } = useSignboards();
+
+  const allTags = useMemo(() => getAllTags(), [getAllTags]);
+  const eras = useMemo(() => ['全部', ...getAllEras()], [getAllEras]);
+  const fontStyles = useMemo(() => ['全部', ...getAllFontStyles()], [getAllFontStyles]);
   const handleChange = (key: keyof Filters, value: string) => {
     onChange({ ...filters, [key]: value });
   };

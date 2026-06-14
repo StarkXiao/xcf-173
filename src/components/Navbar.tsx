@@ -53,6 +53,10 @@ const Navbar: React.FC = () => {
             <span>对比报告</span>
             {reportList.length > 0 && <span className="nav-badge">{reportList.length}</span>}
           </NavLink>
+          <NavLink to="/editor" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">✏️</span>
+            <span>图鉴编辑台</span>
+          </NavLink>
         </div>
 
         <div className="navbar-theme">

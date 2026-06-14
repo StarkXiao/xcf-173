@@ -286,3 +286,18 @@ export const conditionStatusLabels: Record<ConditionStatus, { text: string; clas
   'damaged': { text: '有所损坏', className: 'status-damaged', icon: '⚠️', color: '#ef4444' },
   'restored': { text: '经过修复', className: 'status-restored', icon: '🏛️', color: '#3b82f6' }
 };
+
+export interface SignboardsContextType {
+  signboards: Signboard[];
+  addSignboard: (data: Omit<Signboard, 'id'>) => Signboard;
+  updateSignboard: (id: string, updates: Partial<Omit<Signboard, 'id'>>) => void;
+  deleteSignboard: (id: string) => void;
+  getSignboard: (id: string) => Signboard | undefined;
+  getAllTags: () => string[];
+  getAllEras: () => string[];
+  getAllFontStyles: () => string[];
+  addTag: (tag: string) => void;
+  addEra: (era: string) => void;
+  addFontStyle: (fontStyle: string) => void;
+  resetToDefault: () => void;
+}

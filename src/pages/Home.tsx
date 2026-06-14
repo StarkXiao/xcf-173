@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { signboards } from '../data/signboards';
 import type { Filters } from '../types';
 import { getEraStageByYear } from '../types';
+import { useSignboards } from '../context/SignboardsContext';
 import { useCollections } from '../context/CollectionsContext';
 import { useStatusTracking } from '../context/StatusTrackingContext';
 import Filter from '../components/Filter';
@@ -15,6 +15,7 @@ import { getNeighborhoodRecommendations } from '../utils/recommendation';
 import './Home.css';
 
 const Home: React.FC = () => {
+  const { signboards } = useSignboards();
   const { collections } = useCollections();
   const { getLatestStatus, hasRecords, getRecordsForSignboard } = useStatusTracking();
   const [filters, setFilters] = useState<Filters>({

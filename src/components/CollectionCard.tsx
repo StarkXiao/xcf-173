@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Collection } from '../types';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import './CollectionCard.css';
 
 interface CollectionCardProps {
@@ -12,13 +12,14 @@ interface CollectionCardProps {
 
 const CollectionCard: React.FC<CollectionCardProps> = ({ collection, onEdit, onDelete }) => {
   const navigate = useNavigate();
+  const { getSignboard } = useSignboards();
 
   const coverSignboards = collection.items
-    .map(item => signboards.find(s => s.id === item.signboardId))
+    .map(item => getSignboard(item.signboardId))
     .filter((s): s is NonNullable<typeof s> => s !== undefined);
 
   const coverSignboard = collection.coverSignboardId
-    ? signboards.find(s => s.id === collection.coverSignboardId)
+    ? getSignboard(collection.coverSignboardId)
     : coverSignboards[0];
 
   const otherCovers = coverSignboards.filter(s => s.id !== coverSignboard?.id).slice(0, 3);

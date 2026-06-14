@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCollections } from '../context/CollectionsContext';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import type { Signboard } from '../types';
 import CollectionEditorModal from '../components/CollectionEditorModal';
 import type { Collection } from '../types';
@@ -10,6 +10,7 @@ import './CollectionDetail.css';
 const CollectionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getSignboard } = useSignboards();
   const {
     collections,
     deleteCollection,
@@ -28,13 +29,13 @@ const CollectionDetail: React.FC = () => {
 
   const collectionSignboards = collection?.items
     .map(item => ({
-      signboard: signboards.find(s => s.id === item.signboardId),
+      signboard: getSignboard(item.signboardId),
       item
     }))
     .filter((x): x is { signboard: Signboard; item: typeof collection.items[0] } => x.signboard !== undefined) ?? [];
 
   const coverSignboard = collection?.coverSignboardId
-    ? signboards.find(s => s.id === collection.coverSignboardId)
+    ? getSignboard(collection.coverSignboardId)
     : collectionSignboards[0]?.signboard;
 
   const otherCovers = collectionSignboards

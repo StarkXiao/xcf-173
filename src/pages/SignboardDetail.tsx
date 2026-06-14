@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { signboards } from '../data/signboards';
+import { useSignboards } from '../context/SignboardsContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useOralArchives } from '../context/OralArchivesContext';
 import { useTheme } from '../context/ThemeContext';
@@ -22,6 +22,7 @@ const conditionLabels: Record<string, { text: string; className: string }> = {
 const SignboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { signboards, getSignboard } = useSignboards();
   const { toggleFavorite, toggleCompare, addToCompare, maxCompare, isFavorite, isInCompare, compareList } = useFavorites();
   const { saveArchive, deleteArchive, getArchive } = useOralArchives();
   const { applyContentTheme, resetContentTheme } = useTheme();
@@ -47,7 +48,7 @@ const SignboardDetail: React.FC = () => {
     }
   }, [toast]);
 
-  const signboard = signboards.find(s => s.id === id);
+  const signboard = id ? getSignboard(id) : undefined;
   const existingArchive = id ? getArchive(id) : undefined;
 
   const displayCondition = useMemo(() => {
