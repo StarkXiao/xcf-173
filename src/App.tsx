@@ -5,6 +5,7 @@ import { CollectionsProvider } from './context/CollectionsContext';
 import { OralArchivesProvider } from './context/OralArchivesContext';
 import { StatusTrackingProvider } from './context/StatusTrackingContext';
 import { SignboardsProvider } from './context/SignboardsContext';
+import { FontEvolutionProvider } from './context/FontEvolutionContext';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignboardDetail from './pages/SignboardDetail';
@@ -19,41 +20,47 @@ import ExhibitionHall from './pages/ExhibitionHall';
 import ExhibitDetail from './pages/ExhibitDetail';
 import CompareArea from './pages/CompareArea';
 import TourPage from './pages/TourPage';
+import FontEvolution from './pages/FontEvolution';
+import FontFamilyDetail from './pages/FontFamilyDetail';
 
 function App() {
   return (
     <ThemeProvider>
       <SignboardsProvider>
-        <FavoritesProvider>
-          <CollectionsProvider>
-            <OralArchivesProvider>
-              <StatusTrackingProvider>
-                <BrowserRouter>
-                  <div className="app">
-                    <Navbar />
-                    <main>
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/signboard/:id" element={<SignboardDetail />} />
-                        <Route path="/favorites" element={<Favorites />} />
-                        <Route path="/compare" element={<Compare />} />
-                        <Route path="/compare-report" element={<CompareReport />} />
-                        <Route path="/collection/:id" element={<CollectionDetail />} />
-                        <Route path="/roaming" element={<CityRoaming />} />
-                        <Route path="/map-atlas" element={<DistrictMapAtlas />} />
-                        <Route path="/editor" element={<EditorPage />} />
-                        <Route path="/exhibition" element={<ExhibitionHall />} />
-                        <Route path="/exhibition/exhibit/:id" element={<ExhibitDetail />} />
-                        <Route path="/exhibition/compare" element={<CompareArea />} />
-                        <Route path="/exhibition/tour" element={<TourPage />} />
-                      </Routes>
-                    </main>
-                  </div>
-                </BrowserRouter>
-              </StatusTrackingProvider>
-            </OralArchivesProvider>
-          </CollectionsProvider>
-        </FavoritesProvider>
+        <FontEvolutionProvider>
+          <FavoritesProvider>
+            <CollectionsProvider>
+              <OralArchivesProvider>
+                <StatusTrackingProvider>
+                  <BrowserRouter>
+                    <div className="app">
+                      <Navbar />
+                      <main>
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/signboard/:id" element={<SignboardDetail />} />
+                          <Route path="/favorites" element={<Favorites />} />
+                          <Route path="/compare" element={<Compare />} />
+                          <Route path="/compare-report" element={<CompareReport />} />
+                          <Route path="/collection/:id" element={<CollectionDetail />} />
+                          <Route path="/roaming" element={<CityRoaming />} />
+                          <Route path="/map-atlas" element={<DistrictMapAtlas />} />
+                          <Route path="/editor" element={<EditorPage />} />
+                          <Route path="/exhibition" element={<ExhibitionHall />} />
+                          <Route path="/exhibition/exhibit/:id" element={<ExhibitDetail />} />
+                          <Route path="/exhibition/compare" element={<CompareArea />} />
+                          <Route path="/exhibition/tour" element={<TourPage />} />
+                          <Route path="/font-evolution" element={<FontEvolution />} />
+                          <Route path="/font-evolution/:id" element={<FontFamilyDetail />} />
+                        </Routes>
+                      </main>
+                    </div>
+                  </BrowserRouter>
+                </StatusTrackingProvider>
+              </OralArchivesProvider>
+            </CollectionsProvider>
+          </FavoritesProvider>
+        </FontEvolutionProvider>
       </SignboardsProvider>
     </ThemeProvider>
   );

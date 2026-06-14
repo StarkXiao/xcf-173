@@ -51,6 +51,10 @@ const Navbar: React.FC = () => {
             <span>我的藏册</span>
             {totalInCollections > 0 && <span className="nav-badge">{totalInCollections}</span>}
           </NavLink>
+          <NavLink to="/font-evolution" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+            <span className="nav-icon">✍️</span>
+            <span>字体流变</span>
+          </NavLink>
           <NavLink to="/compare" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
             <span className="nav-icon">⚖️</span>
             <span>对比分析</span>

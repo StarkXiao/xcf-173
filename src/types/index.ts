@@ -321,3 +321,56 @@ export interface SignboardsContextType {
   updateColorPreset: (id: string, updates: Partial<ColorPreset>) => void;
   resetToDefault: () => void;
 }
+
+export interface FontStyleFeature {
+  strokes: string;
+  feeling: string;
+  era: string;
+  features: string[];
+}
+
+export interface FontEraVariant {
+  era: string;
+  yearRange: string;
+  description: string;
+  characteristics: string[];
+  representativeWorks: string[];
+}
+
+export interface FontFamily {
+  id: string;
+  name: string;
+  englishName: string;
+  style: string;
+  origin: string;
+  originEra: string;
+  description: string;
+  features: FontStyleFeature;
+  eraVariants: FontEraVariant[];
+  signboardIds: string[];
+  color: string;
+  icon: string;
+  difficulty: 'basic' | 'intermediate' | 'advanced';
+  readability: number;
+  artisticValue: number;
+  historicalSignificance: number;
+}
+
+export interface FontEvolutionFilters {
+  style: string;
+  era: string;
+  difficulty: string;
+  sortBy: string;
+}
+
+export interface FontEvolutionContextType {
+  fontFamilies: FontFamily[];
+  getFontFamily: (id: string) => FontFamily | undefined;
+  getFontFamilyByStyle: (style: string) => FontFamily | undefined;
+  getSignboardsForFontFamily: (fontFamilyId: string) => Signboard[];
+  getEraVariantsForFontFamily: (fontFamilyId: string) => FontEraVariant[];
+  getAllFontStyles: () => string[];
+  getAllFontDifficulties: () => string[];
+  filterFontFamilies: (filters: FontEvolutionFilters) => FontFamily[];
+  sortFontFamilies: (families: FontFamily[], sortBy: string) => FontFamily[];
+}
